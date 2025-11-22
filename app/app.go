@@ -1,33 +1,33 @@
 package app
 
 import (
-"context"
-"fmt"
-"log"
-"sync"
-"time"
+	"context"
+	"fmt"
+	"log"
+	"sync"
+	"time"
 
-"github.com/lengzhao/streamlit-go/server"
-"github.com/lengzhao/streamlit-go/state"
-"github.com/lengzhao/streamlit-go/ui"
-"github.com/lengzhao/streamlit-go/widgets"
+	"github.com/lengzhao/streamlit-go/server"
+	"github.com/lengzhao/streamlit-go/state"
+	"github.com/lengzhao/streamlit-go/ui"
+	"github.com/lengzhao/streamlit-go/widgets"
 )
 
 // App 应用实例，管理整个应用的生命周期
 type App struct {
-	config              *Config                   // 应用配置
-	stateManager        *state.Manager            // 状态管理器
-	widgets             []widgets.Widget          // 全局组件队列（所有用户共享）
+	config              *Config                     // 应用配置
+	stateManager        *state.Manager              // 状态管理器
+	widgets             []widgets.Widget            // 全局组件队列（所有用户共享）
 	sessionWidgets      map[string][]widgets.Widget // 每个会话的私有组件队列
-	widgetsMutex        sync.RWMutex              // 全局组件队列锁
-	sessionWidgetsMutex sync.RWMutex              // 会话组件映射锁
-	currentSession      *state.Session            // 当前会话
-	ctx                 context.Context           // 应用上下文
-	cancel              context.CancelFunc        // 取消函数
-	httpServer          *server.HTTPServer        // HTTP服务器
-	hub                 *server.Hub               // WebSocket Hub
-	renderer            *ui.Renderer              // UI渲染器
-	currentSessionID    string                    // 当前会话ID
+	widgetsMutex        sync.RWMutex                // 全局组件队列锁
+	sessionWidgetsMutex sync.RWMutex                // 会话组件映射锁
+	currentSession      *state.Session              // 当前会话
+	ctx                 context.Context             // 应用上下文
+	cancel              context.CancelFunc          // 取消函数
+	httpServer          *server.HTTPServer          // HTTP服务器
+	hub                 *server.Hub                 // WebSocket Hub
+	renderer            *ui.Renderer                // UI渲染器
+	currentSessionID    string                      // 当前会话ID
 }
 
 // New 创建新的应用实例
@@ -54,15 +54,15 @@ func New(options ...Option) *App {
 	renderer := ui.NewRenderer()
 
 	app := &App{
-		config:              config,
-		stateManager:        stateManager,
-		widgets:             make([]widgets.Widget, 0),
-		sessionWidgets:      make(map[string][]widgets.Widget),
-		ctx:                 ctx,
-		cancel:              cancel,
-		httpServer:          httpServer,
-		hub:                 hub,
-		renderer:            renderer,
+		config:         config,
+		stateManager:   stateManager,
+		widgets:        make([]widgets.Widget, 0),
+		sessionWidgets: make(map[string][]widgets.Widget),
+		ctx:            ctx,
+		cancel:         cancel,
+		httpServer:     httpServer,
+		hub:            hub,
+		renderer:       renderer,
 	}
 
 	// 设置事件处理器
@@ -78,9 +78,9 @@ func New(options ...Option) *App {
 
 	// 设置全局更新函数
 	widgets.SetGlobalUpdateFunc(func(componentID string, html string) {
-log.Printf("GlobalUpdateFunc: componentID=%s, html=%s", componentID, html)
-if app.currentSessionID != "" {
-if err := app.hub.SendPartialUpdate(app.currentSessionID, componentID, html); err != nil {
+		log.Printf("GlobalUpdateFunc: componentID=%s, html=%s", componentID, html)
+		if app.currentSessionID != "" {
+			if err := app.hub.SendPartialUpdate(app.currentSessionID, componentID, html); err != nil {
 				log.Printf("Failed to send partial update: %v", err)
 			}
 		} else {
@@ -142,12 +142,8 @@ func (a *App) Rerun() {
 // Session 获取当前会话
 func (a *App) Session() *state.Session {
 	if a.currentSession == nil {
-		// 如果没有当前会话，创建一个默认会话
-		sessionID, err := state.GenerateSessionID()
-		if err != nil {
-			log.Printf("Failed to generate session ID: %v", err)
-			sessionID = "default"
-		}
+		// 如果没有当前会话，使用固定的默认会话ID
+		sessionID := "default-session-id"
 		a.currentSession = a.stateManager.GetSession(sessionID)
 		a.currentSessionID = sessionID
 	}
@@ -259,7 +255,7 @@ func (a *App) GetAddress() string {
 // HandleComponentEvent 实现EventHandler接口，处理组件事件
 func (a *App) HandleComponentEvent(sessionID string, event *server.ComponentEventData) {
 	log.Printf("Component event received: sessionID=%s, componentID=%s, eventType=%s, value=%v",
-sessionID, event.ComponentID, event.EventType, event.Value)
+		sessionID, event.ComponentID, event.EventType, event.Value)
 
 	// 设置当前会话ID，确保全局更新函数能正常工作
 	a.SetCurrentSession(sessionID)

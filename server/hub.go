@@ -1,9 +1,9 @@
 package server
 
 import (
-"encoding/json"
-"log"
-"sync"
+	"encoding/json"
+	"log"
+	"sync"
 )
 
 // Hub WebSocket连接池管理器
@@ -112,6 +112,7 @@ func (h *Hub) Register(client *Client) {
 
 // Unregister 注销客户端
 func (h *Hub) Unregister(client *Client) {
+	// log.Printf("Unregistering client for session: %s", client.SessionID())
 	h.unregister <- client
 }
 

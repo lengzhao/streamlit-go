@@ -206,13 +206,12 @@ func (r *Renderer) RenderPage(title string, widgets []widgets.Widget) (string, e
     
     <script>
         let ws;
-        let sessionId = "default-session-id";
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
         
         function connect() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = protocol + '//' + window.location.host + '/ws?sessionId=' + sessionId;
+            const wsUrl = protocol + '//' + window.location.host + '/ws?sessionId=' + encodeURIComponent("default-session-id");
             
             console.log('WebSocket connecting to:', wsUrl);
             ws = new WebSocket(wsUrl);
@@ -269,7 +268,7 @@ func (r *Renderer) RenderPage(title string, widgets []widgets.Widget) (string, e
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     type: 'component_event',
-                    sessionId: sessionId,
+                    sessionId: "default-session-id",
                     data: {
                         componentId: widgetId,
                         eventType: eventType,
@@ -311,7 +310,7 @@ func (r *Renderer) RenderPage(title string, widgets []widgets.Widget) (string, e
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     type: 'ping',
-                    sessionId: sessionId,
+                    sessionId: "default-session-id",
                     timestamp: Date.now()
                 }));
             }

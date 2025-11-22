@@ -1,23 +1,23 @@
 package server
 
 import (
-"context"
-"encoding/json"
-"log"
-"net/http"
-"sync"
-"time"
+	"context"
+	"encoding/json"
+	"log"
+	"net/http"
+	"sync"
+	"time"
 
-"github.com/gorilla/websocket"
+	"github.com/gorilla/websocket"
 )
 
 // Client WebSocket客户端
 type Client struct {
-	hub        *Hub          // Hub引用
-	conn       *websocket.Conn // WebSocket连接
-	send       chan []byte   // 发送消息通道
-	sessionID  string        // 会话ID
-	mutex      sync.Mutex    // 互斥锁
+	hub       *Hub            // Hub引用
+	conn      *websocket.Conn // WebSocket连接
+	send      chan []byte     // 发送消息通道
+	sessionID string          // 会话ID
+	mutex     sync.Mutex      // 互斥锁
 }
 
 // Upgrader WebSocket升级器
@@ -48,6 +48,7 @@ func (c *Client) SessionID() string {
 // ReadPump 读取来自WebSocket连接的消息
 func (c *Client) ReadPump(ctx context.Context) {
 	defer func() {
+		log.Println("Closing WebSocket connection for session:", c.sessionID)
 		c.hub.Unregister(c)
 		c.conn.Close()
 	}()
@@ -55,13 +56,14 @@ func (c *Client) ReadPump(ctx context.Context) {
 	// 设置读取超时
 	c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 	c.conn.SetPongHandler(func(string) error {
-c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
+		c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 		return nil
 	})
 
 	for {
 		select {
 		case <-ctx.Done():
+			log.Println("ctx: WebSocket connection closed for session:", c.sessionID)
 			return
 		default:
 			_, message, err := c.conn.ReadMessage()
@@ -69,13 +71,15 @@ c.conn.SetReadDeadline(time.Now().Add(60 * time.Second))
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 					log.Printf("WebSocket error: %v", err)
 				}
-				break
+				log.Println("WebSocket error:", err, "sessionID:", c.sessionID)
+				return // 确保在出错时退出循环并关闭连接
 			}
 
 			// 处理消息
 			c.handleMessage(message)
 		}
 	}
+
 }
 
 // WritePump 将消息写入WebSocket连接
@@ -183,9 +187,8 @@ func ServeWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	// 获取会话ID
 	sessionID := r.URL.Query().Get("sessionId")
 	if sessionID == "" {
-		log.Println("Missing sessionId parameter")
-		http.Error(w, "Missing sessionId parameter", http.StatusBadRequest)
-		return
+		// 如果没有提供会话ID，使用默认ID
+		sessionID = "default-session-id"
 	}
 
 	// 升级到WebSocket连接
@@ -206,8 +209,6 @@ func ServeWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	// 启动读写协程
 	go client.WritePump(ctx)
-	go client.ReadPump(ctx)
+	client.ReadPump(ctx)
 
-	// 发送初始UI
-	// 注意：这里需要获取初始UI内容并发送给客户端
 }

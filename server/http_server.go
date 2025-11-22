@@ -122,7 +122,7 @@ func (s *HTTPServer) generateInitialPage() string {
 	}
 
 	// 生成会话ID（在实际应用中应该从请求中获取或生成）
-	sessionID := "default-session-id"
+	sessionID := "default-session-id" // 使用固定的会话ID以确保前后端一致
 
 	return fmt.Sprintf(`
 <!DOCTYPE html>
@@ -280,13 +280,12 @@ func (s *HTTPServer) generateInitialPage() string {
     
     <script>
         let ws;
-        let sessionId = "%s";
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
         
         function connect() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = protocol + '//' + window.location.host + '/ws?sessionId=' + sessionId;
+            const wsUrl = protocol + '//' + window.location.host + '/ws?sessionId=' + encodeURIComponent("default-session-id");
             
             console.log('WebSocket connecting to:', wsUrl);
             ws = new WebSocket(wsUrl);
@@ -343,7 +342,7 @@ func (s *HTTPServer) generateInitialPage() string {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     type: 'component_event',
-                    sessionId: sessionId,
+                    sessionId: "default-session-id",
                     data: {
                         componentId: widgetId,
                         eventType: eventType,
@@ -385,7 +384,7 @@ func (s *HTTPServer) generateInitialPage() string {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     type: 'ping',
-                    sessionId: sessionId,
+                    sessionId: "default-session-id",
                     timestamp: Date.now()
                 }));
             }
