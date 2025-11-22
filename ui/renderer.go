@@ -1,0 +1,340 @@
+package ui
+
+import (
+	"bytes"
+	"fmt"
+	"html/template"
+
+	"github.com/lengzhao/streamlit-go/widgets"
+)
+
+// Renderer UI渲染器
+type Renderer struct {
+}
+
+// NewRenderer 创建新的UI渲染器
+func NewRenderer() *Renderer {
+	return &Renderer{}
+}
+
+// RenderWidgets 渲染所有组件为HTML
+func (r *Renderer) RenderWidgets(widgets []widgets.Widget) string {
+	html := ""
+	for _, widget := range widgets {
+		if widget.IsVisible() {
+			html += widget.Render()
+		}
+	}
+	return html
+}
+
+// RenderPage 渲染完整页面
+func (r *Renderer) RenderPage(title string, widgets []widgets.Widget) (string, error) {
+	widgetsHTML := r.RenderWidgets(widgets)
+
+	// 页面模板
+	pageTemplate := `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            padding: 20px;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .st-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .st-title {
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .st-header {
+            color: #333;
+            margin: 20px 0 10px 0;
+        }
+        .st-header-with-divider {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .st-subheader {
+            color: #666;
+            margin: 15px 0 8px 0;
+        }
+        .st-text {
+            color: #333;
+            margin: 10px 0;
+        }
+        .st-write {
+            color: #333;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .st-button {
+            background-color: #ff4b4b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+        .st-button:hover {
+            background-color: #ff3333;
+        }
+        .st-text-input-container, .st-number-input-container {
+            margin: 10px 0;
+        }
+        .st-text-input-container label, .st-number-input-container label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .st-text-input, .st-number-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .st-container-with-border {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .st-columns {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+        .st-column {
+            flex: 1;
+        }
+        .st-sidebar {
+            background-color: #f0f2f6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .st-sidebar-expanded {
+            display: block;
+        }
+        .st-expander {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .st-expander-header {
+            background-color: #f0f2f6;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .st-expander-content {
+            padding: 10px;
+        }
+        .st-expander-expanded .st-expander-content {
+            display: block;
+        }
+        .st-table, .st-dataframe {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        .st-table td, .st-dataframe td, .st-table th, .st-dataframe th {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .st-table th, .st-dataframe th {
+            background-color: #f0f2f6;
+        }
+        .st-metric {
+            background-color: #f0f2f6;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .st-metric-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .st-metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .st-metric-delta {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .st-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            background-color: #ff4b4b;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="st-container">
+        <div id="connectionStatus" class="st-status">Connecting...</div>
+        <div id="widgets-container">
+            {{.Content}}
+        </div>
+    </div>
+    
+    <script>
+        let ws;
+        let sessionId = "default-session-id";
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        
+        function connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = protocol + '//' + window.location.host + '/ws?sessionId=' + sessionId;
+            
+            console.log('WebSocket connecting to:', wsUrl);
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                console.log('WebSocket connected');
+                document.getElementById('connectionStatus').textContent = '✓ Connected';
+                document.getElementById('connectionStatus').className = 'st-status';
+                reconnectAttempts = 0;
+            };
+            
+            ws.onmessage = function(event) {
+                console.log('WebSocket message received:', event.data);
+                handleMessage(JSON.parse(event.data));
+            };
+            
+            ws.onclose = function() {
+                console.log('WebSocket closed');
+                document.getElementById('connectionStatus').textContent = '✗ Disconnected';
+                document.getElementById('connectionStatus').className = 'st-status';
+                
+                // 尝试重连
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(connect, 1000 * reconnectAttempts);
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+        }
+        
+        function handleMessage(msg) {
+            switch (msg.type) {
+                case 'ui_update':
+                    document.getElementById('widgets-container').innerHTML = msg.data.html;
+                    break;
+                case 'partial_update':
+                    const element = document.querySelector('[data-widget-id="' + msg.data.componentId + '"]');
+                    if (element) {
+                        element.outerHTML = msg.data.html;
+                    }
+                    break;
+                case 'error':
+                    console.error('Server error:', msg.data.message);
+                    break;
+                default:
+                    console.log('Unknown message type:', msg.type);
+            }
+        }
+        
+        function sendEvent(widgetId, eventType, value) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'component_event',
+                    sessionId: sessionId,
+                    data: {
+                        componentId: widgetId,
+                        eventType: eventType,
+                        value: value
+                    },
+                    timestamp: Date.now()
+                }));
+            }
+        }
+        
+        // 页面加载完成后连接WebSocket
+        window.addEventListener('load', function() {
+            connect();
+            
+            // 为现有的元素添加事件监听器
+            attachEventListeners();
+        });
+        
+        function attachEventListeners() {
+            // 按钮点击事件
+            const buttons = document.querySelectorAll('[data-event-type="click"]');
+            buttons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    sendEvent(this.dataset.widgetId, 'click', null);
+                });
+            });
+            
+            // 输入框变化事件
+            const inputs = document.querySelectorAll('[data-event-type="input"]');
+            inputs.forEach(function(input) {
+                input.addEventListener('input', function() {
+                    sendEvent(this.dataset.widgetId, 'input', this.value);
+                });
+            });
+        }
+        
+        // 定期发送心跳
+        setInterval(function() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'ping',
+                    sessionId: sessionId,
+                    timestamp: Date.now()
+                }));
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
+`
+
+	tmpl, err := template.New("page").Parse(pageTemplate)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	data := map[string]interface{}{
+		"Title":   title,
+		"Content": template.HTML(widgetsHTML),
+	}
+
+	var buf bytes.Buffer
+	if err := tmpl.Execute(&buf, data); err != nil {
+		return "", fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return buf.String(), nil
+}
