@@ -209,6 +209,7 @@ func ServeWebSocket(hub *Hub, w http.ResponseWriter, r *http.Request) {
 
 	// 启动读写协程
 	go client.WritePump(ctx)
+	// 不能启动读协程，否则ctx会取消，导致连接断开
 	client.ReadPump(ctx)
 
 }

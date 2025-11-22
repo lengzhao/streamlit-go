@@ -30,6 +30,8 @@ func NewHTTPServer(host string, port int, hub *Hub) *HTTPServer {
 // SetEventHandler 设置事件处理器
 func (s *HTTPServer) SetEventHandler(handler EventHandler) {
 	s.eventHandler = handler
+	// 同时设置Hub的事件处理器
+	s.hub.SetEventHandler(handler)
 }
 
 // SetGetWidgetsCallback 设置获取组件回调函数
