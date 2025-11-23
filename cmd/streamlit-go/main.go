@@ -1,21 +1,22 @@
 package main
 
 import (
-"fmt"
-"log"
-"os"
-"os/signal"
-"syscall"
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-"github.com/lengzhao/streamlit-go/app"
+	"github.com/lengzhao/streamlit-go/app"
+	"github.com/lengzhao/streamlit-go/widgets"
 )
 
 func main() {
 	// 创建应用实例
 	st := app.New(
-app.WithTitle("Streamlit Go"),
-app.WithPort(8503),
-)
+		app.WithTitle("Streamlit Go"),
+		app.WithPort(8503),
+	)
 
 	// 添加组件
 	st.Title("欢迎使用 Streamlit Go")
@@ -29,15 +30,15 @@ app.WithPort(8503),
 
 	// 按钮示例
 	buttonOutput := st.Write("")
-	st.ButtonWithCallback("点击我", func() {
+	st.ButtonWithCallback("点击我", func(session widgets.SessionInterface) {
 		buttonOutput.SetData("按钮被点击了！")
 	})
 
 	// 输入示例
 	inputOutput := st.Write("")
-	textInput := st.TextInputWithCallback("输入文本:", func(value string) {
-inputOutput.SetData("您输入的是: " + value)
-}, "")
+	textInput := st.TextInputWithCallback("输入文本:", func(session widgets.SessionInterface, value string) {
+		inputOutput.SetData("您输入的是: " + value)
+	}, "")
 	textInput.SetPlaceholder("请输入文本")
 
 	// 打印组件信息
@@ -45,13 +46,6 @@ inputOutput.SetData("您输入的是: " + value)
 	fmt.Printf("创建了 %d 个组件:\n", len(widgets))
 	for i, w := range widgets {
 		fmt.Printf("%d. 类型: %s, ID: %s\n", i+1, w.GetType(), w.GetID())
-	}
-
-	// 测试会话状态
-	session := st.Session()
-	session.Set("test_key", "test_value")
-	if val, ok := session.Get("test_key"); ok {
-		fmt.Printf("\n会话状态测试成功: %v\n", val)
 	}
 
 	fmt.Println("\n基础框架测试完成！")

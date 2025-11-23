@@ -1,10 +1,10 @@
 package app
 
 import (
-"log"
-"strconv"
+	"log"
+	"strconv"
 
-"github.com/lengzhao/streamlit-go/widgets"
+	"github.com/lengzhao/streamlit-go/widgets"
 )
 
 // Title 添加标题组件
@@ -51,10 +51,10 @@ func (a *App) Button(label string, key ...string) *widgets.ButtonWidget {
 }
 
 // ButtonWithCallback 添加带回调函数的Button组件
-func (a *App) ButtonWithCallback(label string, callback func(), key ...string) *widgets.ButtonWidget {
+func (a *App) ButtonWithCallback(label string, callback func(session widgets.SessionInterface), key ...string) *widgets.ButtonWidget {
 	w := widgets.NewButton(label, key...)
-	w.OnChange(func(event string, value string) {
-callback()
+	w.OnChange(func(session widgets.SessionInterface, event string, value string) {
+		callback(session)
 	})
 	a.AddWidget(w)
 	return w
@@ -72,15 +72,15 @@ func (a *App) TextInput(label string, value ...string) *widgets.TextInputWidget 
 }
 
 // TextInputWithCallback 添加带回调函数的TextInput组件
-func (a *App) TextInputWithCallback(label string, callback func(string), value ...string) *widgets.TextInputWidget {
+func (a *App) TextInputWithCallback(label string, callback func(session widgets.SessionInterface, value string), value ...string) *widgets.TextInputWidget {
 	var val string
 	if len(value) > 0 {
 		val = value[0]
 	}
 	w := widgets.NewTextInput(label, val)
-	w.OnChange(func(event string, value string) {
-callback(value)
-})
+	w.OnChange(func(session widgets.SessionInterface, event string, value string) {
+		callback(session, value)
+	})
 	a.AddWidget(w)
 	return w
 }
@@ -97,15 +97,15 @@ func (a *App) NumberInput(label string, value ...float64) *widgets.NumberInputWi
 }
 
 // NumberInputWithCallback 添加带回调函数的NumberInput组件
-func (a *App) NumberInputWithCallback(label string, callback func(float64), value ...float64) *widgets.NumberInputWidget {
+func (a *App) NumberInputWithCallback(label string, callback func(session widgets.SessionInterface, value float64), value ...float64) *widgets.NumberInputWidget {
 	var val float64
 	if len(value) > 0 {
 		val = value[0]
 	}
 	w := widgets.NewNumberInput(label, val)
-	w.OnChange(func(event string, value string) {
-if f, err := strconv.ParseFloat(value, 64); err == nil {
-			callback(f)
+	w.OnChange(func(session widgets.SessionInterface, event string, value string) {
+		if f, err := strconv.ParseFloat(value, 64); err == nil {
+			callback(session, f)
 		} else {
 			log.Printf("Failed to parse number input value: %s", value)
 		}

@@ -13,13 +13,13 @@ import (
 
 // HTTPServer HTTP服务器
 type HTTPServer struct {
-	host               string
-	port               int
-	hub                *Hub
-	server             *http.Server
-	eventHandler       EventHandler
-	getWidgetsCallback func() string
-	appTitle           string
+	host                         string
+	port                         int
+	hub                          *Hub
+	server                       *http.Server
+	eventHandler                 EventHandler
+	getWidgetsForSessionCallback func(sessionID string) string // 为特定会话获取组件的回调
+	appTitle                     string
 }
 
 // NewHTTPServer 创建新的HTTP服务器
@@ -38,9 +38,9 @@ func (s *HTTPServer) SetEventHandler(handler EventHandler) {
 	s.hub.SetEventHandler(handler)
 }
 
-// SetGetWidgetsCallback 设置获取组件回调函数
-func (s *HTTPServer) SetGetWidgetsCallback(callback func() string) {
-	s.getWidgetsCallback = callback
+// SetGetWidgetsForSessionCallback 设置为特定会话获取组件的回调函数
+func (s *HTTPServer) SetGetWidgetsForSessionCallback(callback func(sessionID string) string) {
+	s.getWidgetsForSessionCallback = callback
 }
 
 // SetAppTitle 设置应用标题
@@ -101,7 +101,7 @@ func (s *HTTPServer) serveStatic(w http.ResponseWriter, r *http.Request) {
 // serveHome 处理主页请求
 func (s *HTTPServer) serveHome(w http.ResponseWriter, r *http.Request) {
 	// 生成初始HTML页面
-	html := s.generateInitialPage()
+	html := s.generateInitialPage(r)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(html))
@@ -115,16 +115,23 @@ func (s *HTTPServer) serveHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 // generateInitialPage 生成初始HTML页面
-func (s *HTTPServer) generateInitialPage() string {
+func (s *HTTPServer) generateInitialPage(r *http.Request) string {
 	title := "Streamlit Go App"
 	if s.appTitle != "" {
 		title = s.appTitle
 	}
 
+	// 获取会话ID
+	sessionID := r.URL.Query().Get("sessionId")
+	if sessionID == "" {
+		// 如果没有提供会话ID，使用默认ID
+		sessionID = "default-session-id"
+	}
+
 	// 生成组件HTML
 	widgetsHTML := ""
-	if s.getWidgetsCallback != nil {
-		widgetsHTML = s.getWidgetsCallback()
+	if s.getWidgetsForSessionCallback != nil {
+		widgetsHTML = s.getWidgetsForSessionCallback(sessionID)
 	}
 
 	// 从模板包中获取页面模板

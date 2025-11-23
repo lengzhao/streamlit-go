@@ -1,9 +1,9 @@
 package widgets
 
 import (
-"fmt"
-"html"
-"strconv"
+	"fmt"
+	"html"
+	"strconv"
 )
 
 // TextInputWidget 文本输入组件
@@ -33,14 +33,14 @@ func (w *TextInputWidget) Render() string {
 	if w.placeholder != "" {
 		placeholderAttr = fmt.Sprintf(" placeholder=\"%s\"", html.EscapeString(w.placeholder))
 	}
-	return fmt.Sprintf("<div class=\"st-text-input-container\" data-widget-id=\"%s\"><label>%s</label><input type=\"text\" class=\"st-text-input\" data-widget-id=\"%s\" data-event-type=\"input\" value=\"%s\"%s></div>", 
-w.GetID(), html.EscapeString(w.label), w.GetID(), html.EscapeString(w.value), placeholderAttr)
+	return fmt.Sprintf("<div class=\"st-text-input-container\" data-widget-id=\"%s\"><label>%s</label><input type=\"text\" class=\"st-text-input\" data-widget-id=\"%s\" data-event-type=\"input\" value=\"%s\"%s></div>",
+		w.GetID(), html.EscapeString(w.label), w.GetID(), html.EscapeString(w.value), placeholderAttr)
 }
 
 // SetValue 设置文本输入值
-func (w *TextInputWidget) SetValue(value string) {
+func (w *TextInputWidget) SetValue(session SessionInterface, value string) {
 	w.value = value
-	w.TriggerCallbacks("input", value)
+	w.TriggerCallbacks(session, "input", value)
 }
 
 // GetValue 获取文本输入值
@@ -81,14 +81,14 @@ func NewNumberInput(label string, value float64, key ...string) *NumberInputWidg
 
 // Render 渲染数字输入组件为HTML
 func (w *NumberInputWidget) Render() string {
-	return fmt.Sprintf("<div class=\"st-number-input-container\" data-widget-id=\"%s\"><label>%s</label><input type=\"number\" class=\"st-number-input\" data-widget-id=\"%s\" data-event-type=\"input\" value=\"%g\" step=\"%g\"></div>", 
-w.GetID(), html.EscapeString(w.label), w.GetID(), w.value, w.step)
+	return fmt.Sprintf("<div class=\"st-number-input-container\" data-widget-id=\"%s\"><label>%s</label><input type=\"number\" class=\"st-number-input\" data-widget-id=\"%s\" data-event-type=\"input\" value=\"%g\" step=\"%g\"></div>",
+		w.GetID(), html.EscapeString(w.label), w.GetID(), w.value, w.step)
 }
 
 // SetValue 设置数字输入值
-func (w *NumberInputWidget) SetValue(value float64) {
+func (w *NumberInputWidget) SetValue(session SessionInterface, value float64) {
 	w.value = value
-	w.TriggerCallbacks("input", strconv.FormatFloat(value, 'g', -1, 64))
+	w.TriggerCallbacks(session, "input", strconv.FormatFloat(value, 'g', -1, 64))
 }
 
 // GetValue 获取数字输入值

@@ -1,22 +1,20 @@
 package main
 
 import (
-"fmt"
-"log"
-"os"
-"os/signal"
-"syscall"
-"time"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 
-"github.com/lengzhao/streamlit-go/app"
+	"github.com/lengzhao/streamlit-go/app"
 )
 
 func main() {
 	// 创建应用实例
 	st := app.New(
-app.WithTitle("我的第一个Streamlit Go应用"),
-app.WithPort(8501),
-)
+		app.WithTitle("我的第一个Streamlit Go应用"),
+		app.WithPort(8501),
+	)
 
 	// 添加各种组件进行测试
 	st.Title("🚀 欢迎使用Streamlit Go")
@@ -31,7 +29,7 @@ app.WithPort(8501),
 	st.Write(true)
 
 	// 指标组件
-	st.Subheader("�� 指标展示")
+	st.Subheader("📊 指标展示")
 	metric1 := st.Metric("总用户数", 1234)
 	metric1.SetDelta("+12%")
 
@@ -41,33 +39,8 @@ app.WithPort(8501),
 	metric3 := st.Metric("收入", "$89,432")
 	metric3.SetDelta("-2.3%")
 
-	// 输入组件
-	st.Subheader("⌨️ 输入组件")
-	// 先创建一个WriteWidget来显示输入的姓名
-	nameOutput := st.Write("")
-	nameInput := st.TextInputWithCallback("姓名", func(name string) {
-if name != "" {
-nameOutput.SetData("您好，" + name + "！")
-}
-}, "")
-	nameInput.SetPlaceholder("请输入您的姓名")
-
-	// 先创建一个WriteWidget来显示输入的年龄
-	ageOutput := st.Write("")
-	st.NumberInputWithCallback("您的年龄", func(age float64) {
-log.Printf("年龄 changed! Value: %v", age)
-ageOutput.SetData(fmt.Sprintf("您的年龄是: %.0f", age))
-}, 25)
-
-	// 按钮
-	// 先创建一个WriteWidget来显示按钮点击消息
-	buttonOutput := st.Write("")
-	st.ButtonWithCallback("👍 点击我", func() {
-		buttonOutput.SetData(fmt.Sprintf("按钮被点击了！%v", time.Now().Format("2006-01-02 15:04:05")))
-	})
-
 	// 数据展示
-	st.Subheader("📊 数据展示")
+	st.Subheader("📈 数据展示")
 
 	// 简单表格
 	data := []string{"苹果", "香蕉", "橙子"}
@@ -91,6 +64,10 @@ ageOutput.SetData(fmt.Sprintf("您的年龄是: %.0f", age))
 	expander := st.Expander("🔍 点击展开查看更多", false)
 	expanderText := st.Text("这是隐藏的内容，点击标题可以展开或折叠")
 	expander.AddChild(expanderText)
+
+	// 会话特定Widgets示例
+	st.Subheader("👥 会话特定Widgets示例")
+	st.Text("以下组件演示了如何为不同用户创建独立的Widgets")
 
 	log.Println("应用创建成功")
 	log.Println("请在浏览器中访问 http://localhost:8501")

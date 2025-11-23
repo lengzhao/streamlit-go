@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
+
+	"github.com/lengzhao/streamlit-go/state"
 )
 
 // Hub WebSocket连接池管理器
@@ -25,11 +27,14 @@ type Hub struct {
 
 	// 组件事件处理器
 	eventHandler EventHandler
+
+	// 状态管理器引用
+	stateManager *state.Manager
 }
 
 // EventHandler 事件处理器接口
 type EventHandler interface {
-	HandleComponentEvent(sessionID string, event *ComponentEventData)
+	HandleComponentEvent(session *state.Session, event *ComponentEventData)
 }
 
 // NewHub 创建新的Hub
@@ -160,6 +165,11 @@ func (h *Hub) SetEventHandler(handler EventHandler) {
 	h.eventHandler = handler
 }
 
+// SetStateManager 设置状态管理器
+func (h *Hub) SetStateManager(stateManager *state.Manager) {
+	h.stateManager = stateManager
+}
+
 // HandleComponentEvent 处理组件事件
 func (h *Hub) HandleComponentEvent(msg *Message) {
 	if h.eventHandler == nil {
@@ -174,7 +184,11 @@ func (h *Hub) HandleComponentEvent(msg *Message) {
 		_ = json.Unmarshal(d, eventData)
 	}
 
-	h.eventHandler.HandleComponentEvent(msg.SessionID, eventData)
+	// 获取会话对象
+	session := h.stateManager.GetSession(msg.SessionID)
+
+	// 首先尝试在会话中处理事件
+	h.eventHandler.HandleComponentEvent(session, eventData)
 }
 
 // SendUIUpdate 发送UI更新到指定会话

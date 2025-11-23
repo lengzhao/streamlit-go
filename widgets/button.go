@@ -1,7 +1,7 @@
 package widgets
 
 import (
-"fmt"
+	"fmt"
 )
 
 // ButtonWidget 按钮组件
@@ -28,6 +28,6 @@ func (w *ButtonWidget) Render() string {
 }
 
 // SetValue 设置按钮值（触发点击事件）
-func (w *ButtonWidget) SetValue() {
-	w.TriggerCallbacks("click", "")
+func (w *ButtonWidget) SetValue(session SessionInterface) {
+	w.TriggerCallbacks(session, "click", "")
 }

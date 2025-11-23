@@ -173,15 +173,36 @@
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
         
+        // 获取或生成session ID
+        function getSessionId() {
+            // 尝试从cookie中获取session ID
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith('streamlit_session_id=')) {
+                    return cookie.substring('streamlit_session_id='.length);
+                }
+            }
+            
+            // 如果cookie中没有，生成新的session ID
+            const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // 保存到cookie，不限制有效期
+            document.cookie = `streamlit_session_id=${sessionId}; path=/`;
+            
+            return sessionId;
+        }
+        
         function connect() {
+            const sessionId = getSessionId();
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = protocol + '//' + window.location.host + '/ws?sessionId=' + encodeURIComponent("default-session-id");
+            const wsUrl = protocol + '//' + window.location.host + '/ws?sessionId=' + encodeURIComponent(sessionId);
             
             console.log('WebSocket connecting to:', wsUrl);
             ws = new WebSocket(wsUrl);
             
             ws.onopen = function() {
-                console.log('WebSocket connected');
+                console.log('WebSocket connected with session ID:', sessionId);
                 document.getElementById('connectionStatus').textContent = '✓ Connected';
                 document.getElementById('connectionStatus').className = 'st-status';
                 reconnectAttempts = 0;
@@ -232,7 +253,7 @@
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     type: 'component_event',
-                    sessionId: "default-session-id",
+                    sessionId: getSessionId(),
                     data: {
                         componentId: widgetId,
                         eventType: eventType,
@@ -274,7 +295,7 @@
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
                     type: 'ping',
-                    sessionId: "default-session-id",
+                    sessionId: getSessionId(),
                     timestamp: Date.now()
                 }));
             }

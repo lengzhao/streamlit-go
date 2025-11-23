@@ -1,8 +1,8 @@
 package widgets
 
 import (
-"fmt"
-"html"
+	"fmt"
+	"html"
 )
 
 // TitleWidget 标题组件
@@ -22,6 +22,15 @@ func NewTitle(text string, anchor ...string) *TitleWidget {
 		w.anchor = anchor[0]
 	}
 	return w
+}
+
+// SetText 设置标题文本
+func (w *TitleWidget) SetText(text string) {
+	w.text = text
+	// 触发更新
+	w.UpdateWidget(func() string {
+		return w.Render()
+	})
 }
 
 // Render 渲染标题组件为HTML
@@ -120,6 +129,11 @@ func (w *WriteWidget) SetData(data interface{}) {
 	w.UpdateWidget(func() string {
 		return w.Render()
 	})
+}
+
+// GetData 获取数据
+func (w *WriteWidget) GetData() interface{} {
+	return w.data
 }
 
 // Render 渲染通用数据展示组件为HTML
