@@ -114,8 +114,8 @@ func NewMetric(label string, value interface{}, key ...string) *MetricWidget {
 // SetDelta 设置指标变化值
 func (w *MetricWidget) SetDelta(delta string) {
 	w.delta = delta
-	// 触发更新
-	w.UpdateWidget(func() string {
+	// 触发更新（注意：这里没有会话上下文，可能需要在其他地方处理更新）
+	w.UpdateWidget(nil, func() string {
 		return w.Render()
 	})
 }

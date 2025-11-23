@@ -51,8 +51,8 @@ func (w *TextInputWidget) GetValue() string {
 // SetPlaceholder 设置占位符
 func (w *TextInputWidget) SetPlaceholder(placeholder string) {
 	w.placeholder = placeholder
-	// 触发更新
-	w.UpdateWidget(func() string {
+	// 触发更新（注意：这里没有会话上下文，可能需要在其他地方处理更新）
+	w.UpdateWidget(nil, func() string {
 		return w.Render()
 	})
 }
@@ -99,8 +99,8 @@ func (w *NumberInputWidget) GetValue() float64 {
 // SetStep 设置步长
 func (w *NumberInputWidget) SetStep(step float64) {
 	w.step = step
-	// 触发更新
-	w.UpdateWidget(func() string {
+	// 触发更新（注意：这里没有会话上下文，可能需要在其他地方处理更新）
+	w.UpdateWidget(nil, func() string {
 		return w.Render()
 	})
 }

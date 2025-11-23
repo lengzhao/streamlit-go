@@ -22,6 +22,7 @@ type SessionInterface interface {
 	AddWidget(widget Widget)
 	GetWidgets() []Widget
 	ClearWidgets()
+	UpdateWidget(componentID string, html string)
 }
 
 // Widget 组件接口，所有组件必须实现此接口
@@ -107,13 +108,18 @@ func (w *BaseWidget) TriggerCallbacks(session SessionInterface, event string, va
 }
 
 // UpdateWidget 更新组件并发送局部更新
-func (w *BaseWidget) UpdateWidget(renderer func() string) string {
-	if globalUpdateFunc != nil {
-		html := renderer()
+func (w *BaseWidget) UpdateWidget(session SessionInterface, renderer func() string) string {
+	html := renderer()
+
+	// 如果提供了会话上下文，则使用会话的局部更新方法
+	if session != nil {
+		session.UpdateWidget(w.GetID(), html)
+	} else if globalUpdateFunc != nil {
+		// 否则使用全局更新函数（向后兼容）
 		globalUpdateFunc(w.GetID(), html)
-		return html
 	}
-	return ""
+
+	return html
 }
 
 // SetVisible 设置可见性

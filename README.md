@@ -20,7 +20,7 @@ go mod tidy
 
 ## 运行示例
 
-请查看 [examples/README.md](file:///Volumes/ssd/myproject/streamlit-go/examples/README.md) 了解不同示例的运行方式。
+请查看 [examples/README.md](./examples/README.md) 了解不同示例的运行方式。
 
 ### 会话Widgets示例
 
@@ -38,7 +38,7 @@ go run main.go
 
 ## 会话Widgets功能
 
-本项目支持为不同用户创建独立的Widgets，这些Widgets与用户的会话(session)挂钩。详细说明请查看 [SESSION_WIDGETS.md](file:///Volumes/ssd/myproject/streamlit-go/SESSION_WIDGETS.md)。
+本项目支持为不同用户创建独立的Widgets，这些Widgets与用户的会话(session)挂钩。详细说明请查看 [SESSION_WIDGETS.md](./SESSION_WIDGETS.md)。
 
 ### 会话隔离特性
 

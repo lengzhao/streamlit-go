@@ -7,7 +7,7 @@ Streamlit Go 的组件系统是框架的核心部分，提供了丰富的 UI 组
 ## 2. 组件架构
 
 ### 2.1 Widget 接口
-所有组件都必须实现 [Widget](file:///Volumes/ssd/myproject/streamlit-go/widgets/base.go#L27-L49) 接口：
+所有组件都必须实现 [Widget](../widgets/base.go#L27-L49) 接口：
 
 ```go
 type Widget interface {
@@ -35,7 +35,7 @@ type Widget interface {
 ```
 
 ### 2.2 BaseWidget 基类
-[BaseWidget](file:///Volumes/ssd/myproject/streamlit-go/widgets/base.go#L56-L63) 提供了所有组件的通用功能实现：
+[BaseWidget](../widgets/base.go#L56-L63) 提供了所有组件的通用功能实现：
 
 - 组件 ID 生成和管理
 - 键值管理
@@ -44,7 +44,7 @@ type Widget interface {
 - UI 更新机制
 
 ### 2.3 ITriggerCallbacks 接口
-[ITriggerCallbacks](file:///Volumes/ssd/myproject/streamlit-go/widgets/base.go#L51-L54) 接口用于触发组件回调：
+[ITriggerCallbacks](../widgets/base.go#L51-L54) 接口用于触发组件回调：
 
 ```go
 type ITriggerCallbacks interface {

@@ -253,3 +253,25 @@ func (h *Hub) SendError(sessionID string, errorMsg string, errorCode string) err
 	h.SendToSession(sessionID, data)
 	return nil
 }
+
+// SendAddWidget 发送添加组件消息到指定会话
+func (h *Hub) SendAddWidget(sessionID string, componentID string, html string) error {
+	log.Printf("Hub.SendAddWidget: sessionID=%s, componentID=%s", sessionID, componentID)
+	msg := Message{
+		Type:      "add_widget",
+		SessionID: sessionID,
+		Data: map[string]interface{}{
+			"componentId": componentID,
+			"html":        html,
+		},
+		Timestamp: 0,
+	}
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	h.SendToSession(sessionID, data)
+	return nil
+}

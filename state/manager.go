@@ -1,32 +1,46 @@
 package state
 
 import (
-"context"
-"crypto/rand"
-"encoding/hex"
-"sync"
-"time"
+	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"sync"
+	"time"
 )
 
 // Manager 状态管理器，管理所有会话
 type Manager struct {
-	sessions         map[string]*Session // 会话映射表
-	mutex            sync.RWMutex        // 全局读写锁
-	cleanupInterval  time.Duration       // 清理间隔
-	sessionTimeout   time.Duration       // 会话超时时间
-	cleanupCtx       context.Context     // 清理任务上下文
-	cleanupCancel    context.CancelFunc  // 清理任务取消函数
-	cleanupWaitGroup sync.WaitGroup      // 等待清理任务完成
+	sessions         map[string]*Session           // 会话映射表
+	mutex            sync.RWMutex                  // 全局读写锁
+	cleanupInterval  time.Duration                 // 清理间隔
+	sessionTimeout   time.Duration                 // 会话超时时间
+	cleanupCtx       context.Context               // 清理任务上下文
+	cleanupCancel    context.CancelFunc            // 清理任务取消函数
+	cleanupWaitGroup sync.WaitGroup                // 等待清理任务完成
+	uiUpdaterFactory func() func(sessionID string) // UI更新回调函数工厂
+	hub              interface{}                   // Hub引用
 }
 
 // NewManager 创建新的状态管理器
 func NewManager(cleanupInterval, sessionTimeout time.Duration) *Manager {
 	return &Manager{
-		sessions:        make(map[string]*Session),
-		mutex:           sync.RWMutex{},
-		cleanupInterval: cleanupInterval,
-		sessionTimeout:  sessionTimeout,
+		sessions:         make(map[string]*Session),
+		mutex:            sync.RWMutex{},
+		cleanupInterval:  cleanupInterval,
+		sessionTimeout:   sessionTimeout,
+		uiUpdaterFactory: nil,
+		hub:              nil,
 	}
+}
+
+// SetHub 设置Hub引用
+func (m *Manager) SetHub(hub interface{}) {
+	m.hub = hub
+}
+
+// SetUIUpdaterFactory 设置UI更新回调函数工厂
+func (m *Manager) SetUIUpdaterFactory(factory func() func(sessionID string)) {
+	m.uiUpdaterFactory = factory
 }
 
 // GetSession 获取或创建会话
@@ -50,6 +64,17 @@ func (m *Manager) GetSession(sessionID string) *Session {
 	}
 
 	session = NewSession(sessionID)
+
+	// 设置Hub引用
+	if m.hub != nil {
+		session.SetHub(m.hub)
+	}
+
+	// 如果设置了UI更新回调函数工厂，则为会话设置UI更新回调
+	if m.uiUpdaterFactory != nil {
+		session.SetUIUpdater(m.uiUpdaterFactory())
+	}
+
 	m.sessions[sessionID] = session
 	return session
 }
@@ -112,6 +137,18 @@ func (m *Manager) SessionCount() int {
 	defer m.mutex.RUnlock()
 
 	return len(m.sessions)
+}
+
+// GetAllSessionIDs 获取所有会话ID
+func (m *Manager) GetAllSessionIDs() []string {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	ids := make([]string, 0, len(m.sessions))
+	for id := range m.sessions {
+		ids = append(ids, id)
+	}
+	return ids
 }
 
 // GenerateSessionID 生成新的会话ID

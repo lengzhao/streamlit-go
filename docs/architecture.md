@@ -7,7 +7,7 @@ Streamlit Go 是一个用 Go 语言实现的 Streamlit 框架，用于快速构�
 ## 2. 核心组件
 
 ### 2.1 App (应用核心)
-- **位置**: [app/app.go](file:///Volumes/ssd/myproject/streamlit-go/app/app.go)
+- **位置**: [app/app.go](../app/app.go)
 - **职责**: 
   - 管理整个应用的生命周期
   - 协调各个组件的工作
@@ -15,7 +15,7 @@ Streamlit Go 是一个用 Go 语言实现的 Streamlit 框架，用于快速构�
   - 管理全局组件队列
 
 ### 2.2 Server (服务层)
-- **位置**: [server/](file:///Volumes/ssd/myproject/streamlit-go/server/)
+- **位置**: [server/](../server/)
 - **职责**:
   - HTTP 服务器实现
   - WebSocket 连接管理
@@ -23,27 +23,27 @@ Streamlit Go 是一个用 Go 语言实现的 Streamlit 框架，用于快速构�
   - Hub 管理所有客户端连接
 
 ### 2.3 State (状态管理)
-- **位置**: [state/](file:///Volumes/ssd/myproject/streamlit-go/state/)
+- **位置**: [state/](../state/)
 - **职责**:
   - 会话管理
   - 状态存储
   - 会话超时和清理
 
 ### 2.4 Widgets (组件系统)
-- **位置**: [widgets/](file:///Volumes/ssd/myproject/streamlit-go/widgets/)
+- **位置**: [widgets/](../widgets/)
 - **职责**:
   - 实现各种 UI 组件
   - 组件渲染
   - 事件处理
 
 ### 2.5 UI (渲染层)
-- **位置**: [ui/](file:///Volumes/ssd/myproject/streamlit-go/ui/)
+- **位置**: [ui/](../ui/)
 - **职责**:
   - HTML 渲染
   - 组件布局
 
 ### 2.6 Templates (模板)
-- **位置**: [ptemplate/](file:///Volumes/ssd/myproject/streamlit-go/ptemplate/)
+- **位置**: [ptemplate/](../ptemplate/)
 - **职责**:
   - HTML 模板管理
   - 页面结构定义
@@ -62,7 +62,7 @@ graph TD
     E --> H[Session Store]
     F --> I[Widget Base]
     G --> J[HTML Templates]
-```
+[Widget](../widgets/base.go#L27-L49) 接口
 
 ## 4. 数据流
 

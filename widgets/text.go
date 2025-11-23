@@ -27,8 +27,8 @@ func NewTitle(text string, anchor ...string) *TitleWidget {
 // SetText 设置标题文本
 func (w *TitleWidget) SetText(text string) {
 	w.text = text
-	// 触发更新
-	w.UpdateWidget(func() string {
+	// 触发更新（注意：这里没有会话上下文，可能需要在其他地方处理更新）
+	w.UpdateWidget(nil, func() string {
 		return w.Render()
 	})
 }
@@ -125,8 +125,8 @@ func NewWrite(data interface{}) *WriteWidget {
 // SetData 设置数据
 func (w *WriteWidget) SetData(data interface{}) {
 	w.data = data
-	// 触发更新
-	w.UpdateWidget(func() string {
+	// 触发更新（注意：这里没有会话上下文，可能需要在其他地方处理更新）
+	w.UpdateWidget(nil, func() string {
 		return w.Render()
 	})
 }

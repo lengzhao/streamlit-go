@@ -48,6 +48,8 @@ func New(options ...Option) *App {
 
 	// 设置状态管理器
 	hub.SetStateManager(stateManager)
+	// 同时设置StateManager的Hub引用，确保新创建的Session能获取到Hub
+	stateManager.SetHub(hub)
 
 	// 创建HTTP服务器
 	httpServer := server.NewHTTPServer(config.Server.Host, config.Server.Port, hub)

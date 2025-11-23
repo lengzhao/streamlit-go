@@ -172,6 +172,8 @@
         let ws;
         let reconnectAttempts = 0;
         const maxReconnectAttempts = 5;
+        // 用于跟踪已绑定事件监听器的元素ID
+        const attachedListeners = new Set();
         
         // 获取或生成session ID
         function getSessionId() {
@@ -239,6 +241,17 @@
                     const element = document.querySelector('[data-widget-id="' + msg.data.componentId + '"]');
                     if (element) {
                         element.outerHTML = msg.data.html;
+                        // 重新绑定事件监听器
+                        attachEventListeners();
+                    }
+                    break;
+                case 'add_widget':
+                    // 添加新组件到DOM末尾
+                    const container = document.getElementById('widgets-container');
+                    if (container) {
+                        container.insertAdjacentHTML('beforeend', msg.data.html);
+                        // 重新绑定事件监听器
+                        attachEventListeners();
                     }
                     break;
                 case 'error':
@@ -276,17 +289,29 @@
             // 按钮点击事件
             const buttons = document.querySelectorAll('[data-event-type="click"]');
             buttons.forEach(function(button) {
-                button.addEventListener('click', function() {
-                    sendEvent(this.dataset.widgetId, 'click', null);
-                });
+                const widgetId = button.dataset.widgetId;
+                // 检查是否已经绑定了事件监听器
+                if (!attachedListeners.has(widgetId)) {
+                    button.addEventListener('click', function() {
+                        sendEvent(widgetId, 'click', null);
+                    });
+                    // 标记已添加监听器
+                    attachedListeners.add(widgetId);
+                }
             });
             
             // 输入框变化事件
             const inputs = document.querySelectorAll('[data-event-type="input"]');
             inputs.forEach(function(input) {
-                input.addEventListener('input', function() {
-                    sendEvent(this.dataset.widgetId, 'input', this.value);
-                });
+                const widgetId = input.dataset.widgetId;
+                // 检查是否已经绑定了事件监听器
+                if (!attachedListeners.has(widgetId)) {
+                    input.addEventListener('input', function() {
+                        sendEvent(widgetId, 'input', this.value);
+                    });
+                    // 标记已添加监听器
+                    attachedListeners.add(widgetId);
+                }
             });
         }
         

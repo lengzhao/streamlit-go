@@ -13,7 +13,7 @@ func main() {
 	// 创建应用实例
 	st := app.New(
 		app.WithTitle("我的第一个Streamlit Go应用"),
-		app.WithPort(8501),
+		app.WithPort(8504),
 	)
 
 	// 添加各种组件进行测试
@@ -70,7 +70,7 @@ func main() {
 	st.Text("以下组件演示了如何为不同用户创建独立的Widgets")
 
 	log.Println("应用创建成功")
-	log.Println("请在浏览器中访问 http://localhost:8501")
+	log.Println("请在浏览器中访问 http://localhost:8504")
 
 	// 设置信号处理，优雅关闭
 	sigChan := make(chan os.Signal, 1)
