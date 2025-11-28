@@ -24,10 +24,11 @@ func NewButton(label string, key ...string) *ButtonWidget {
 
 // Render 渲染按钮组件为HTML
 func (w *ButtonWidget) Render() string {
-	return fmt.Sprintf("<button class=\"st-button\" data-widget-id=\"%s\" data-event-type=\"click\">%s</button>", w.GetID(), w.label)
+	id := w.GetID()
+	return fmt.Sprintf("<button class=\"st-button\" data-widget-id=\"%s\" id=\"%s\" data-event-type=\"click\">%s</button>", id, id, w.label)
 }
 
 // SetValue 设置按钮值（触发点击事件）
-func (w *ButtonWidget) SetValue(session SessionInterface) {
+func (w *ButtonWidget) SetValue(session ISession) {
 	w.TriggerCallbacks(session, "click", "")
 }

@@ -38,7 +38,7 @@ func (w *TextInputWidget) Render() string {
 }
 
 // SetValue 设置文本输入值
-func (w *TextInputWidget) SetValue(session SessionInterface, value string) {
+func (w *TextInputWidget) SetValue(session ISession, value string) {
 	w.value = value
 	w.TriggerCallbacks(session, "input", value)
 }
@@ -86,7 +86,7 @@ func (w *NumberInputWidget) Render() string {
 }
 
 // SetValue 设置数字输入值
-func (w *NumberInputWidget) SetValue(session SessionInterface, value float64) {
+func (w *NumberInputWidget) SetValue(session ISession, value float64) {
 	w.value = value
 	w.TriggerCallbacks(session, "input", strconv.FormatFloat(value, 'g', -1, 64))
 }

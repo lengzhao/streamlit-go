@@ -6,8 +6,8 @@ import (
 	"github.com/lengzhao/streamlit-go/widgets"
 )
 
-// SessionInterface 会话接口，避免循环依赖
-type SessionInterface interface {
+// ISession 会话接口，避免循环依赖
+type ISession interface {
 	ID() string
 	Get(key string) (interface{}, bool)
 	Set(key string, value interface{})

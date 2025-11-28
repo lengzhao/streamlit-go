@@ -332,7 +332,7 @@ func (w *BaseWidget) GetKey() string
 
 #### OnChange
 ```go
-func (w *BaseWidget) OnChange(callback func(session SessionInterface, event string, value string))
+func (w *BaseWidget) OnChange(callback func(session ISession, event string, value string))
 ```
 设置值变更回调函数。
 
@@ -358,7 +358,7 @@ func (w *NumberInputWidget) SetValue(value float64)
 
 #### Button.SetValue
 ```go
-func (w *ButtonWidget) SetValue(session SessionInterface)
+func (w *ButtonWidget) SetValue(session ISession)
 ```
 触发按钮点击事件。
 

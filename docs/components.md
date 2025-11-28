@@ -27,7 +27,7 @@ type Widget interface {
     GetKey() string
 
     // OnChange 设置值变更回调函数
-    OnChange(callback func(session SessionInterface, event string, value string))
+    OnChange(callback func(session ISession, event string, value string))
 
     // IsVisible 检查组件是否可见
     IsVisible() bool
@@ -48,7 +48,7 @@ type Widget interface {
 
 ```go
 type ITriggerCallbacks interface {
-    TriggerCallbacks(session SessionInterface, event string, value string)
+    TriggerCallbacks(session ISession, event string, value string)
 }
 ```
 
@@ -99,7 +99,7 @@ html := widget.Render()
 ### 4.4 事件处理
 组件可以注册事件回调：
 ```go
-button.OnChange(func(session widgets.SessionInterface, event string, value string) {
+button.OnChange(func(session widgets.ISession, event string, value string) {
     // 处理事件
 })
 ```

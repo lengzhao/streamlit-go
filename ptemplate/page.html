@@ -162,169 +162,118 @@
 </head>
 <body>
     <div class="st-container">
-        <div id="connectionStatus" class="st-status">Connecting...</div>
         <div id="widgets-container">
             {{.Content}}
         </div>
     </div>
     
     <script>
-        let ws;
-        let reconnectAttempts = 0;
-        const maxReconnectAttempts = 5;
-        // 用于跟踪已绑定事件监听器的元素ID
-        const attachedListeners = new Set();
-        
-        // 获取或生成session ID
+        // 获取会话ID
         function getSessionId() {
-            // 尝试从cookie中获取session ID
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.startsWith('streamlit_session_id=')) {
-                    return cookie.substring('streamlit_session_id='.length);
+            // 尝试从URL参数获取会话ID
+            const urlParams = new URLSearchParams(window.location.search);
+            let sessionId = urlParams.get('sessionId');
+            
+            if (!sessionId) {
+                // 尝试从cookie中获取session ID
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.startsWith('streamlit_session_id=')) {
+                        sessionId = cookie.substring('streamlit_session_id='.length);
+                        break;
+                    }
                 }
             }
             
-            // 如果cookie中没有，生成新的session ID
-            const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            // 如果都没有，生成新的session ID
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
             
-            // 保存到cookie，不限制有效期
+            // 保存到cookie和URL参数
             document.cookie = `streamlit_session_id=${sessionId}; path=/`;
+            
+            // 更新URL参数
+            if (!urlParams.has('sessionId')) {
+                const newUrl = new URL(window.location);
+                newUrl.searchParams.set('sessionId', sessionId);
+                window.history.replaceState({}, '', newUrl);
+            }
             
             return sessionId;
         }
         
-        function connect() {
+        // 发送事件
+        function sendEvent(componentId, eventType, value) {
             const sessionId = getSessionId();
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = protocol + '//' + window.location.host + '/ws?sessionId=' + encodeURIComponent(sessionId);
             
-            console.log('WebSocket connecting to:', wsUrl);
-            ws = new WebSocket(wsUrl);
+            // 创建URL编码的表单数据
+            const params = new URLSearchParams();
+            params.append('session_id', sessionId);
+            params.append('component_id', componentId);
+            params.append('event_type', eventType);
+            params.append('value', value || '');
             
-            ws.onopen = function() {
-                console.log('WebSocket connected with session ID:', sessionId);
-                document.getElementById('connectionStatus').textContent = '✓ Connected';
-                document.getElementById('connectionStatus').className = 'st-status';
-                reconnectAttempts = 0;
-            };
-            
-            ws.onmessage = function(event) {
-                console.log('WebSocket message received:', event.data);
-                handleMessage(JSON.parse(event.data));
-            };
-            
-            ws.onclose = function() {
-                console.log('WebSocket closed');
-                document.getElementById('connectionStatus').textContent = '✗ Disconnected';
-                document.getElementById('connectionStatus').className = 'st-status';
-                
-                // 尝试重连
-                if (reconnectAttempts < maxReconnectAttempts) {
-                    reconnectAttempts++;
-                    setTimeout(connect, 1000 * reconnectAttempts);
+            // 发送POST请求
+            fetch('/event', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: params
+            }).then(response => {
+                if (!response.ok) {
+                    console.error('Event send failed:', response.status);
+                    return;
                 }
-            };
-            
-            ws.onerror = function(error) {
-                console.error('WebSocket error:', error);
-            };
+                // 获取更新后的组件HTML并更新页面
+                return response.text();
+            }).then(html => {
+                if (html) {
+                    // 更新页面内容
+                    document.getElementById('widgets-container').innerHTML = html;
+                    // 重新绑定事件监听器
+                    attachEventListeners();
+                }
+            }).catch(error => {
+                console.error('Event send error:', error);
+            });
         }
         
-        function handleMessage(msg) {
-            switch (msg.type) {
-                case 'ui_update':
-                    document.getElementById('widgets-container').innerHTML = msg.data.html;
-                    break;
-                case 'partial_update':
-                    const element = document.querySelector('[data-widget-id="' + msg.data.componentId + '"]');
-                    if (element) {
-                        element.outerHTML = msg.data.html;
-                        // 重新绑定事件监听器
-                        attachEventListeners();
-                    }
-                    break;
-                case 'add_widget':
-                    // 添加新组件到DOM末尾
-                    const container = document.getElementById('widgets-container');
-                    if (container) {
-                        container.insertAdjacentHTML('beforeend', msg.data.html);
-                        // 重新绑定事件监听器
-                        attachEventListeners();
-                    }
-                    break;
-                case 'error':
-                    console.error('Server error:', msg.data.message);
-                    break;
-                default:
-                    console.log('Unknown message type:', msg.type);
-            }
-        }
-        
-        function sendEvent(widgetId, eventType, value) {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'component_event',
-                    sessionId: getSessionId(),
-                    data: {
-                        componentId: widgetId,
-                        eventType: eventType,
-                        value: value
-                    },
-                    timestamp: Date.now()
-                }));
-            }
-        }
-        
-        // 页面加载完成后连接WebSocket
+        // 页面加载完成后绑定事件监听器
         window.addEventListener('load', function() {
-            connect();
-            
-            // 为现有的元素添加事件监听器
             attachEventListeners();
         });
         
+        // 绑定事件监听器
         function attachEventListeners() {
             // 按钮点击事件
             const buttons = document.querySelectorAll('[data-event-type="click"]');
             buttons.forEach(function(button) {
-                const widgetId = button.dataset.widgetId;
                 // 检查是否已经绑定了事件监听器
-                if (!attachedListeners.has(widgetId)) {
+                if (!button.dataset.listenerAdded) {
                     button.addEventListener('click', function() {
-                        sendEvent(widgetId, 'click', null);
+                        sendEvent(this.dataset.widgetId, 'click', null);
                     });
                     // 标记已添加监听器
-                    attachedListeners.add(widgetId);
+                    button.dataset.listenerAdded = 'true';
                 }
             });
             
             // 输入框变化事件
             const inputs = document.querySelectorAll('[data-event-type="input"]');
             inputs.forEach(function(input) {
-                const widgetId = input.dataset.widgetId;
                 // 检查是否已经绑定了事件监听器
-                if (!attachedListeners.has(widgetId)) {
+                if (!input.dataset.listenerAdded) {
                     input.addEventListener('input', function() {
-                        sendEvent(widgetId, 'input', this.value);
+                        sendEvent(this.dataset.widgetId, 'input', this.value);
                     });
                     // 标记已添加监听器
-                    attachedListeners.add(widgetId);
+                    input.dataset.listenerAdded = 'true';
                 }
             });
         }
-        
-        // 定期发送心跳
-        setInterval(function() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'ping',
-                    sessionId: getSessionId(),
-                    timestamp: Date.now()
-                }));
-            }
-        }, 30000);
     </script>
 </body>
 </html>

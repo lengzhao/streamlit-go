@@ -62,6 +62,9 @@ graph TD
     E --> H[Session Store]
     F --> I[Widget Base]
     G --> J[HTML Templates]
+
+```
+
 [Widget](../widgets/base.go#L27-L49) 接口
 
 ## 4. 数据流
