@@ -174,14 +174,12 @@ func (s *Service) GetWidgets() []widgets.Widget {
 // Title 添加标题组件
 func (s *Service) Title(text string) {
 	title := widgets.NewText(text)
-	title.SetKey("title")
 	s.AddWidget(title)
 }
 
 // Header 添加头部组件
 func (s *Service) Header(text string, withDivider bool) {
 	header := widgets.NewText(text)
-	header.SetKey("header")
 	s.AddWidget(header)
 }
 

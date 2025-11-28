@@ -11,14 +11,12 @@ type ButtonWidget struct {
 }
 
 // NewButton 创建新的按钮组件
-func NewButton(label string, key ...string) *ButtonWidget {
+func NewButton(label string) *ButtonWidget {
 	w := &ButtonWidget{
 		BaseWidget: NewBaseWidget("button"),
 		label:      label,
 	}
-	if len(key) > 0 {
-		w.SetKey(key[0])
-	}
+	// 移除SetKey调用，因为key参数将被忽略
 	return w
 }
 

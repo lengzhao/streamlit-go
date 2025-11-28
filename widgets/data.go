@@ -18,9 +18,7 @@ func NewTable(data interface{}, key ...string) *TableWidget {
 		BaseWidget: NewBaseWidget("table"),
 		data:       data,
 	}
-	if len(key) > 0 {
-		w.SetKey(key[0])
-	}
+	// 移除SetKey调用，因为key参数将被忽略
 	return w
 }
 
@@ -51,9 +49,7 @@ func NewDataFrame(data interface{}, key ...string) *DataFrameWidget {
 		BaseWidget: NewBaseWidget("dataframe"),
 		data:       data,
 	}
-	if len(key) > 0 {
-		w.SetKey(key[0])
-	}
+	// 移除SetKey调用，因为key参数将被忽略
 	return w
 }
 
@@ -99,14 +95,11 @@ type MetricWidget struct {
 }
 
 // NewMetric 创建新的指标组件
-func NewMetric(label string, value interface{}, key ...string) *MetricWidget {
+func NewMetric(label string, value interface{}) *MetricWidget {
 	w := &MetricWidget{
 		BaseWidget: NewBaseWidget("metric"),
 		label:      label,
 		value:      value,
-	}
-	if len(key) > 0 {
-		w.SetKey(key[0])
 	}
 	return w
 }

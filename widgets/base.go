@@ -9,11 +9,6 @@ import (
 // ISession 会话接口，避免循环依赖
 type ISession interface {
 	ID() string
-	Get(key string) (interface{}, bool)
-	Set(key string, value interface{})
-	Delete(key string)
-	Has(key string) bool
-	Clear()
 	LastAccessedAt() time.Time
 	CreatedAt() time.Time
 	AddWidget(widget Widget)
@@ -31,14 +26,11 @@ type Widget interface {
 	// GetID 获取组件唯一标识
 	GetID() string
 
+	// SetID 设置组件ID
+	SetID(id string)
+
 	// GetType 获取组件类型
 	GetType() string
-
-	// SetKey 设置组件键值
-	SetKey(key string)
-
-	// GetKey 获取组件键值
-	GetKey() string
 
 	// OnChange 设置值变更回调函数
 	OnChange(callback func(session ISession, event string, value string))
@@ -55,7 +47,6 @@ type ITriggerCallbacks interface {
 // BaseWidget 组件基类，提供通用功能
 type BaseWidget struct {
 	id         string                                               // 唯一标识符
-	key        string                                               // 用户定义的键
 	widgetType string                                               // 组件类型
 	visible    bool                                                 // 可见性标志
 	callbacks  []func(session ISession, event string, value string) // 值变更回调函数列表
@@ -76,19 +67,14 @@ func (w *BaseWidget) GetID() string {
 	return w.id
 }
 
+// SetID 设置组件ID
+func (w *BaseWidget) SetID(id string) {
+	w.id = id
+}
+
 // GetType 获取组件类型
 func (w *BaseWidget) GetType() string {
 	return w.widgetType
-}
-
-// SetKey 设置组件键值
-func (w *BaseWidget) SetKey(key string) {
-	w.key = key
-}
-
-// GetKey 获取组件键值
-func (w *BaseWidget) GetKey() string {
-	return w.key
 }
 
 // OnChange 设置值变更回调函数

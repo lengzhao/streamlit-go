@@ -29,7 +29,7 @@ Then visit:
 
 ## Widget Update Demo
 
-An example demonstrating widget-level updates and deletions via WebSocket/SSE.
+An example demonstrating widget-level updates and deletions via HTTP POST requests.
 
 ```bash
 cd widget-update-demo

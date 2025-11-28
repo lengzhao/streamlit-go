@@ -32,8 +32,9 @@ func main() {
 	// 创建更新按钮
 	updateButton := widgets.NewButton("更新文本")
 	updateButton.OnChange(func(session widgets.ISession, event string, value string) {
+		// 更新文本组件的内容
 		updateText.SetText("文本已更新！当前时间戳")
-		session.SetWidget(updateText)
+		// 注意：组件更新通过服务端重新渲染所有组件实现，无需显式调用更新方法
 	})
 	service.AddWidget(updateButton)
 

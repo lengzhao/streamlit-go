@@ -1,25 +1,22 @@
 package widgets
 
 import (
-"fmt"
+	"fmt"
 )
 
 // ContainerWidget 容器组件
 type ContainerWidget struct {
 	*BaseWidget
-	border bool
+	border   bool
 	children []Widget
 }
 
 // NewContainer 创建新的容器组件
-func NewContainer(border bool, key ...string) *ContainerWidget {
+func NewContainer(border bool) *ContainerWidget {
 	w := &ContainerWidget{
 		BaseWidget: NewBaseWidget("container"),
 		border:     border,
 		children:   make([]Widget, 0),
-	}
-	if len(key) > 0 {
-		w.SetKey(key[0])
 	}
 	return w
 }
@@ -35,12 +32,12 @@ func (w *ContainerWidget) Render() string {
 	if w.border {
 		borderClass = " st-container-with-border"
 	}
-	
+
 	childrenHTML := ""
 	for _, child := range w.children {
 		childrenHTML += child.Render()
 	}
-	
+
 	return fmt.Sprintf("<div class=\"st-container%s\" data-widget-id=\"%s\">%s</div>", borderClass, w.GetID(), childrenHTML)
 }
 
@@ -71,7 +68,7 @@ func (c *Column) Render() string {
 	for _, child := range c.children {
 		childrenHTML += child.Render()
 	}
-	
+
 	return fmt.Sprintf("<div class=\"st-column\" style=\"flex: %d\" data-widget-id=\"%s\">%s</div>", c.ratio, c.GetID(), childrenHTML)
 }
 
@@ -88,12 +85,12 @@ func NewColumns(ratios ...int) *ColumnsWidget {
 	if len(ratios) == 0 {
 		ratios = []int{1, 1}
 	}
-	
+
 	columns := make([]*Column, len(ratios))
 	for i, ratio := range ratios {
 		columns[i] = NewColumn(ratio)
 	}
-	
+
 	return &ColumnsWidget{
 		BaseWidget: NewBaseWidget("columns"),
 		columns:    columns,
@@ -112,7 +109,7 @@ func (w *ColumnsWidget) Render() string {
 	for _, column := range w.columns {
 		columnsHTML += column.Render()
 	}
-	
+
 	return fmt.Sprintf("<div class=\"st-columns\" data-widget-id=\"%s\">%s</div>", w.GetID(), columnsHTML)
 }
 
@@ -130,9 +127,7 @@ func NewSidebar(expanded bool, key ...string) *SidebarWidget {
 		expanded:   expanded,
 		children:   make([]Widget, 0),
 	}
-	if len(key) > 0 {
-		w.SetKey(key[0])
-	}
+	// 移除SetKey调用，因为key参数将被忽略
 	return w
 }
 
@@ -147,12 +142,12 @@ func (w *SidebarWidget) Render() string {
 	if w.expanded {
 		expandedClass = " st-sidebar-expanded"
 	}
-	
+
 	childrenHTML := ""
 	for _, child := range w.children {
 		childrenHTML += child.Render()
 	}
-	
+
 	return fmt.Sprintf("<div class=\"st-sidebar%s\" data-widget-id=\"%s\">%s</div>", expandedClass, w.GetID(), childrenHTML)
 }
 
@@ -172,9 +167,7 @@ func NewExpander(label string, expanded bool, key ...string) *ExpanderWidget {
 		expanded:   expanded,
 		children:   make([]Widget, 0),
 	}
-	if len(key) > 0 {
-		w.SetKey(key[0])
-	}
+	// 移除SetKey调用，因为key参数将被忽略
 	return w
 }
 
@@ -189,12 +182,12 @@ func (w *ExpanderWidget) Render() string {
 	if w.expanded {
 		expandedClass = " st-expander-expanded"
 	}
-	
+
 	childrenHTML := ""
 	for _, child := range w.children {
 		childrenHTML += child.Render()
 	}
-	
-	return fmt.Sprintf("<div class=\"st-expander%s\" data-widget-id=\"%s\"><div class=\"st-expander-header\">%s</div><div class=\"st-expander-content\">%s</div></div>", 
-expandedClass, w.GetID(), w.label, childrenHTML)
+
+	return fmt.Sprintf("<div class=\"st-expander%s\" data-widget-id=\"%s\"><div class=\"st-expander-header\">%s</div><div class=\"st-expander-content\">%s</div></div>",
+		expandedClass, w.GetID(), w.label, childrenHTML)
 }

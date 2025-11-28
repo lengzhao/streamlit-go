@@ -6,43 +6,30 @@ Streamlit Go 是一个用 Go 语言实现的 Streamlit 框架，用于快速构�
 
 ## 2. 核心组件
 
-### 2.1 App (应用核心)
-- **位置**: [app/app.go](../app/app.go)
+### 2.1 Service (服务核心)
+- **位置**: [core/service.go](../core/service.go)
 - **职责**: 
   - 管理整个应用的生命周期
   - 协调各个组件的工作
   - 提供用户-facing API
   - 管理全局组件队列
+  - 处理HTTP请求和组件事件
 
-### 2.2 Server (服务层)
-- **位置**: [server/](../server/)
-- **职责**:
-  - HTTP 服务器实现
-  - WebSocket 连接管理
-  - 消息处理和路由
-  - Hub 管理所有客户端连接
-
-### 2.3 State (状态管理)
+### 2.2 State (状态管理)
 - **位置**: [state/](../state/)
 - **职责**:
   - 会话管理
   - 状态存储
   - 会话超时和清理
 
-### 2.4 Widgets (组件系统)
+### 2.3 Widgets (组件系统)
 - **位置**: [widgets/](../widgets/)
 - **职责**:
   - 实现各种 UI 组件
   - 组件渲染
   - 事件处理
 
-### 2.5 UI (渲染层)
-- **位置**: [ui/](../ui/)
-- **职责**:
-  - HTML 渲染
-  - 组件布局
-
-### 2.6 Templates (模板)
+### 2.4 Templates (模板)
 - **位置**: [ptemplate/](../ptemplate/)
 - **职责**:
   - HTML 模板管理
@@ -52,16 +39,14 @@ Streamlit Go 是一个用 Go 语言实现的 Streamlit 框架，用于快速构�
 
 ```mermaid
 graph TD
-    A[Client Browser] -->|WebSocket| B[Server Hub]
-    A -->|HTTP| C[HTTP Server]
-    C --> D[App]
-    B --> D
-    D --> E[State Manager]
-    D --> F[Widgets]
-    D --> G[UI Renderer]
-    E --> H[Session Store]
-    F --> I[Widget Base]
-    G --> J[HTML Templates]
+    A[Client Browser] -->|HTTP POST| B[HTTP Server]
+    A -->|HTTP GET| B
+    B --> C[Service]
+    C --> D[State Manager]
+    C --> E[Widgets]
+    D --> F[Session Store]
+    E --> G[Widget Base]
+    C --> H[HTML Templates]
 
 ```
 
@@ -70,24 +55,22 @@ graph TD
 ## 4. 数据流
 
 1. **应用启动**:
-   - App 初始化并启动 HTTP 服务器和 WebSocket Hub
+   - Service 初始化并启动 HTTP 服务器
    - State Manager 启动会话清理任务
 
 2. **客户端连接**:
-   - 客户端通过 HTTP 请求获取页面
-   - 客户端通过 WebSocket 连接到 Hub
-   - Hub 注册客户端并关联会话
+   - 客户端通过 HTTP GET 请求获取页面
+   - 客户端通过 HTTP POST 发送组件事件
 
 3. **事件处理**:
    - 客户端触发事件（点击按钮、输入文本等）
-   - 事件通过 WebSocket 发送到 Hub
-   - Hub 将事件转发给 App 处理
-   - App 查找对应组件并触发回调
+   - 事件通过 HTTP POST 发送到服务端
+   - Service 查找对应组件并触发回调
    - 更新 UI 并发送回客户端
 
 4. **UI 更新**:
    - 组件状态变更后触发 UI 更新
-   - 通过 WebSocket 将更新发送到客户端
+   - 通过 HTTP 响应将更新发送到客户端
    - 客户端更新 DOM
 
 ## 5. 会话管理

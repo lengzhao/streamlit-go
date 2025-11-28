@@ -41,7 +41,6 @@ type Widget interface {
 - 键值管理
 - 回调函数管理
 - 可见性控制
-- UI 更新机制
 
 ### 2.3 ITriggerCallbacks 接口
 [ITriggerCallbacks](../widgets/base.go#L51-L54) 接口用于触发组件回调：
@@ -86,9 +85,9 @@ button := widgets.NewButton("点击我")
 ```
 
 ### 4.2 注册
-组件需要注册到应用中才能显示：
-- 全局组件：`app.AddWidget(widget)`
-- 会话组件：`app.AddWidgetToSession(sessionID, widget)`
+组件需要注册到服务中才能显示：
+- 全局组件：`service.AddWidget(widget)`
+- 会话组件：通过回调函数添加到会话中
 
 ### 4.3 渲染
 组件通过 Render 方法生成 HTML：
@@ -101,22 +100,18 @@ html := widget.Render()
 ```go
 button.OnChange(func(session widgets.ISession, event string, value string) {
     // 处理事件
+    // 可以修改组件状态或会话数据
 })
 ```
 
 ### 4.5 更新
-组件状态变更后可以触发 UI 更新：
-```go
-widget.UpdateWidget(func() string {
-    return widget.Render()
-})
-```
+组件状态变更后，服务端会重新渲染所有组件并返回完整的HTML内容给客户端。
 
 ## 5. 会话组件 vs 全局组件
 
 ### 5.1 全局组件
 - 所有用户共享
-- 在 App 的 widgets 队列中管理
+- 在 Service 的 widgets 队列中管理
 - 适用于全局信息展示
 
 ### 5.2 会话组件

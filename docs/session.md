@@ -2,170 +2,140 @@
 
 ## 1. 概述
 
-Streamlit Go 提供了完善的会话管理机制，支持多用户隔离和状态管理。每个用户拥有独立的会话，确保数据安全和个性化体验。
+Streamlit Go 使用会话(Session)来管理每个用户的独立状态。每个用户都有一个唯一的会话ID，用于区分不同用户的数据和组件状态。
 
 ## 2. 会话生命周期
 
 ### 2.1 会话创建
-- 客户端首次访问时创建会话
-- 会话ID通过Cookie持久化
-- 会话数据存储在内存中
+- 当用户首次访问应用时，系统会自动生成一个新的会话ID
+- 会话ID通过Cookie和URL参数传递和保存
+- 会话对象存储在State Manager中
 
-### 2.2 会话激活
-- WebSocket连接建立时激活会话
-- 会话最后访问时间更新
+### 2.2 会话使用
+- 每次用户请求都会携带会话ID
+- 服务端根据会话ID获取对应的会话对象
+- 组件可以根据会话状态进行个性化渲染
 
-### 2.3 会话超时
-- 默认超时时间：5分钟
-- 定期清理过期会话（每1分钟）
-- 超时后自动释放资源
+### 2.3 会话销毁
+- 会话默认超时时间为5分钟
+- State Manager每1分钟清理一次过期会话
+- 用户关闭浏览器标签页后，会话将在超时后自动清理
 
-### 2.4 会话销毁
-- 手动删除会话
-- 超时自动清理
-- 服务器关闭时清理
+## 3. 会话ID管理
 
-## 3. 会话数据结构
+### 3.1 会话ID生成
+会话ID采用以下格式生成：
+```
+session_{timestamp}_{random_string}
+```
 
-### 3.1 Session 结构
+### 3.2 会话ID传递
+会话ID通过以下方式在客户端和服务端之间传递：
+1. URL参数：`?sessionId=session_123456`
+2. Cookie：`streamlit_session_id=session_123456`
+
+### 3.3 会话ID验证
+- 服务端会验证会话ID的有效性
+- 无效的会话ID会被重新生成
+
+## 4. 会话数据存储
+
+### 4.1 会话结构
+每个会话包含以下数据：
+- 会话ID
+- 创建时间
+- 最后访问时间
+- 会话私有组件列表
+
+### 4.2 组件存储
+会话可以存储两种类型的组件：
+- **全局组件**：所有用户共享的组件，存储在Service中
+- **会话组件**：每个用户独立的组件，存储在Session中
+
+## 5. 多用户支持
+
+### 5.1 用户隔离
+- 每个用户拥有独立的会话空间
+- 用户之间的数据完全隔离
+- 组件状态互不影响
+
+### 5.2 并发访问
+- 会话数据访问使用读写锁保护
+- 支持多个用户同时访问
+- 线程安全的组件操作
+
+## 6. 会话API
+
+### 6.1 Session接口
 ```go
-type Session struct {
-    id             string                 // 会话唯一标识
-    state          map[string]interface{} // 状态存储
-    widgets        []widgets.Widget       // 会话私有组件
-    widgetsMutex   sync.RWMutex           // 组件队列锁
-    createdAt      time.Time              // 创建时间
-    lastAccessedAt time.Time              // 最后访问时间
-    mutex          sync.RWMutex           // 读写锁，保护并发访问
+type ISession interface {
+    ID() string                           // 获取会话ID
+    LastAccessedAt() time.Time            // 获取最后访问时间
+    CreatedAt() time.Time                 // 获取创建时间
+    AddWidget(widget Widget)              // 添加组件到会话
+    SetWidget(widget Widget)              // 更新会话中的组件
+    GetWidgets() []Widget                 // 获取会话组件列表
+    ClearWidgets()                        // 清空会话组件
+    DeleteWidget(componentID string)      // 从会话中删除组件
 }
 ```
 
-### 3.2 Manager 结构
+### 6.2 Manager接口
 ```go
 type Manager struct {
-    sessions         map[string]*Session // 会话映射表
-    mutex            sync.RWMutex        // 全局读写锁
-    cleanupInterval  time.Duration       // 清理间隔
-    sessionTimeout   time.Duration       // 会话超时时间
-    cleanupCtx       context.Context     // 清理任务上下文
-    cleanupCancel    context.CancelFunc  // 清理任务取消函数
-    cleanupWaitGroup sync.WaitGroup      // 等待清理任务完成
+    sessions        map[string]*Session   // 会话存储
+    mutex           sync.RWMutex          // 读写锁
+    cleanupInterval time.Duration         // 清理间隔
+    sessionTimeout  time.Duration         // 会话超时时间
 }
+
+func (m *Manager) GetSession(sessionID string) *Session    // 获取或创建会话
+func (m *Manager) DeleteSession(sessionID string)          // 删除会话
+func (m *Manager) CleanupExpiredSessions()                // 清理过期会话
 ```
 
-## 4. 会话ID管理
+## 7. 使用示例
 
-### 4.1 ID生成策略
-- 格式：`session_{timestamp}_{random_string}`
-- 时间戳确保唯一性
-- 随机字符串增加安全性
-
-### 4.2 ID持久化
-- 使用Cookie存储会话ID
-- Cookie不设置过期时间（会话Cookie）
-- 关闭浏览器后自动清除
-
-### 4.3 ID传递
-- 通过WebSocket连接参数传递
-- URL编码确保传输安全
-
-## 5. 状态管理
-
-### 5.1 状态存储
-- 使用键值对存储用户状态
-- 支持任意类型的数据
-- 线程安全的读写操作
-
-### 5.2 状态操作
+### 7.1 创建会话感知组件
 ```go
-// 设置状态
-session.Set("key", value)
-
-// 获取状态
-value, exists := session.Get("key")
-
-// 删除状态
-session.Delete("key")
-
-// 检查状态是否存在
-exists := session.Has("key")
-
-// 清空所有状态
-session.Clear()
+button := widgets.NewButton("点击计数")
+count := 0
+button.OnChange(func(session widgets.ISession, event string, value string) {
+    count++
+    // 为当前用户创建一个新的文本组件显示计数
+    counter := widgets.NewText(fmt.Sprintf("计数: %d", count))
+    session.AddWidget(counter)
+})
 ```
 
-### 5.3 状态同步
-- 状态变更自动更新最后访问时间
-- 支持组件状态与会话状态联动
-
-## 6. 组件会话绑定
-
-### 6.1 全局组件
-- 所有用户共享
-- 存储在App的全局组件队列中
-- 适用于公共信息展示
-
-### 6.2 会话组件
-- 每个用户独立拥有
-- 存储在Session的组件队列中
-- 适用于个性化内容
-
-### 6.3 组件注册
+### 7.2 会话数据操作
 ```go
-// 注册全局组件
-app.AddWidget(widget)
-
-// 注册会话组件
-app.AddWidgetToSession(sessionID, widget)
+// 在回调函数中访问会话数据
+button.OnChange(func(session widgets.ISession, event string, value string) {
+    // 添加组件到会话
+    session.AddWidget(newWidget)
+    
+    // 删除会话中的组件
+    session.DeleteWidget(componentID)
+    
+    // 获取会话信息
+    sessionID := session.ID()
+})
 ```
 
-## 7. 会话隔离
+## 8. 最佳实践
 
-### 7.1 数据隔离
-- 每个会话拥有独立的状态存储
-- 组件数据互不干扰
-- 确保用户隐私安全
-
-### 7.2 组件隔离
-- 会话组件只对特定用户可见
-- 事件处理在正确的会话上下文中进行
-- UI更新只影响目标用户
-
-### 7.3 并发安全
-- 使用读写锁保护会话数据
-- 组件队列支持并发访问
-- 避免竞态条件
-
-## 8. 会话清理
-
-### 8.1 自动清理
-- 定期检查会话超时
-- 异步清理过期会话
-- 释放内存资源
-
-### 8.2 手动清理
-- 提供API删除指定会话
-- 支持批量清理操作
-- 灵活的会话管理
-
-### 8.3 清理策略
-- 基于最后访问时间
-- 超时时间可配置
-- 清理间隔可调整
-
-## 9. 最佳实践
-
-### 9.1 会话设计
-- 合理划分全局组件和会话组件
+### 8.1 会话组件设计
+- 将用户特定的数据存储在会话组件中
+- 全局共享的信息使用全局组件
 - 避免在会话中存储大量数据
-- 及时清理无用状态
 
-### 9.2 性能优化
-- 使用适当超时时间
-- 避免频繁创建会话
-- 合理设置清理间隔
+### 8.2 性能优化
+- 合理设置会话超时时间
+- 及时清理不必要的会话数据
+- 使用组件复用减少内存占用
 
-### 9.3 安全考虑
-- 保护会话ID不被泄露
-- 验证会话ID的有效性
-- 防止会话固定攻击
+### 8.3 安全考虑
+- 会话ID应足够随机，防止猜测攻击
+- 敏感数据不应存储在客户端可访问的地方
+- 定期清理过期会话释放资源

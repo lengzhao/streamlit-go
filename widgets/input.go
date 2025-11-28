@@ -21,9 +21,7 @@ func NewTextInput(label string, value string, key ...string) *TextInputWidget {
 		label:      label,
 		value:      value,
 	}
-	if len(key) > 0 {
-		w.SetKey(key[0])
-	}
+	// 移除SetKey调用，因为key参数将被忽略
 	return w
 }
 
@@ -62,16 +60,14 @@ type NumberInputWidget struct {
 }
 
 // NewNumberInput 创建新的数字输入组件
-func NewNumberInput(label string, value float64, key ...string) *NumberInputWidget {
+func NewNumberInput(label string, value float64) *NumberInputWidget {
 	w := &NumberInputWidget{
 		BaseWidget: NewBaseWidget("number_input"),
 		label:      label,
 		value:      value,
 		step:       1,
 	}
-	if len(key) > 0 {
-		w.SetKey(key[0])
-	}
+	// 移除SetKey调用，因为key参数将被忽略
 	return w
 }
 
