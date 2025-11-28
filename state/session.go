@@ -1,18 +1,11 @@
 package state
 
 import (
-	"log"
 	"sync"
 	"time"
 
 	"github.com/lengzhao/streamlit-go/widgets"
 )
-
-// HubInterface Hub接口，避免循环依赖
-type HubInterface interface {
-	SendPartialUpdate(sessionID string, componentID string, html string) error
-	SendAddWidget(sessionID string, componentID string, html string) error
-}
 
 // Session 会话结构，存储单个用户的会话状态
 type Session struct {
@@ -23,8 +16,6 @@ type Session struct {
 	createdAt      time.Time              // 创建时间
 	lastAccessedAt time.Time              // 最后访问时间
 	mutex          sync.RWMutex           // 读写锁，保护并发访问
-	uiUpdater      func(sessionID string) // UI更新回调函数
-	hub            interface{}            // Hub引用，用于直接发送消息
 }
 
 // NewSession 创建新的会话
@@ -38,8 +29,6 @@ func NewSession(id string) *Session {
 		createdAt:      now,
 		lastAccessedAt: now,
 		mutex:          sync.RWMutex{},
-		uiUpdater:      nil,
-		hub:            nil,
 	}
 }
 
@@ -107,32 +96,22 @@ func (s *Session) CreatedAt() time.Time {
 	return s.createdAt
 }
 
-// SetUIUpdater 设置UI更新回调函数
-func (s *Session) SetUIUpdater(updater func(sessionID string)) {
-	s.uiUpdater = updater
-}
-
 // AddWidget 添加组件到会话
 func (s *Session) AddWidget(widget widgets.Widget) {
 	s.widgetsMutex.Lock()
 	defer s.widgetsMutex.Unlock()
 
 	s.widgets = append(s.widgets, widget)
+}
 
-	// 渲染新添加的组件并发送添加组件消息
-	html := widget.Render()
-
-	// 直接发送添加组件消息到对应的会话
-	if s.hub != nil {
-		// 使用类型断言而不是反射来调用Hub的方法
-		if hub, ok := s.hub.(HubInterface); ok {
-			// 发送添加组件消息而不是局部更新消息
-			hub.SendAddWidget(s.id, widget.GetID(), html)
-		} else {
-			log.Println("hub is not HubInterface")
+func (s *Session) SetWidget(widget widgets.Widget) {
+	s.widgetsMutex.Lock()
+	defer s.widgetsMutex.Unlock()
+	for i, w := range s.widgets {
+		if w.GetID() == widget.GetID() {
+			s.widgets[i] = widget
+			return
 		}
-	} else {
-		log.Println("hub is nil")
 	}
 }
 
@@ -155,25 +134,27 @@ func (s *Session) ClearWidgets() {
 	s.widgets = make([]widgets.Widget, 0)
 }
 
-// SetHub 设置Hub引用
-func (s *Session) SetHub(hub interface{}) {
-	s.hub = hub
-}
+// RemoveWidget 从会话中移除指定ID的组件
+func (s *Session) RemoveWidget(componentID string) {
+	s.widgetsMutex.Lock()
+	defer s.widgetsMutex.Unlock()
 
-// GetHub 获取Hub引用
-func (s *Session) GetHub() interface{} {
-	return s.hub
-}
-
-// UpdateWidget 局部更新组件
-func (s *Session) UpdateWidget(componentID string, html string) {
-	// 直接发送局部更新到对应的会话
-	if s.hub != nil {
-		// 使用类型断言而不是反射来调用Hub的方法
-		if hub, ok := s.hub.(HubInterface); ok {
-			hub.SendPartialUpdate(s.id, componentID, html)
+	// 查找并移除指定ID的组件
+	for i, widget := range s.widgets {
+		if widget.GetID() == componentID {
+			// 从切片中移除该组件
+			s.widgets = append(s.widgets[:i], s.widgets[i+1:]...)
+			break
 		}
 	}
+}
+
+// DeleteWidget 删除组件（占位方法，实际实现在前端）
+func (s *Session) DeleteWidget(componentID string) {
+	// 从会话中移除组件
+	s.RemoveWidget(componentID)
+
+	// 占位方法，实际删除逻辑由前端处理
 }
 
 // LastAccessedAtStr 返回最后访问时间的字符串表示

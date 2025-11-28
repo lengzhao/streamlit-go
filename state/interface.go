@@ -19,4 +19,6 @@ type ISession interface {
 	AddWidget(widget widgets.Widget)
 	GetWidgets() []widgets.Widget
 	ClearWidgets()
+	UpdateWidget(componentID string, html string)
+	DeleteWidget(componentID string)
 }

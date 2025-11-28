@@ -104,11 +104,6 @@ func NewService(options ...Option) *Service {
 		eventCallback: nil,
 	}
 
-	// 设置全局更新函数
-	widgets.SetGlobalUpdateFunc(func(componentID string, html string) {
-		log.Printf("GlobalUpdateFunc: componentID=%s, html=%s", componentID, html)
-	})
-
 	return service
 }
 
@@ -261,8 +256,8 @@ func (s *Service) handleComponentEvent(session *state.Session, componentID strin
 	}
 }
 
-// RenderWidgetsForSession 为指定会话渲染所有组件为HTML
-func (s *Service) RenderWidgetsForSession(sessionID string) string {
+// RenderWidgetsForPage 为指定页面渲染所有组件为HTML
+func (s *Service) RenderWidgetsForPage(sessionID string) string {
 	// 获取会话对象
 	session := s.stateManager.GetSession(sessionID)
 
@@ -362,7 +357,7 @@ func (s *Service) serveEvent(w http.ResponseWriter, r *http.Request) {
 	s.handleEvent(session, componentID, eventType, value)
 
 	// 重新渲染页面并返回
-	widgetsHTML := s.RenderWidgetsForSession(sessionID)
+	widgetsHTML := s.RenderWidgetsForPage(sessionID)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
@@ -393,7 +388,7 @@ func (s *Service) generateInitialPage(r *http.Request) string {
 	}
 
 	// 生成组件HTML
-	widgetsHTML := s.RenderWidgetsForSession(sessionID)
+	widgetsHTML := s.RenderWidgetsForPage(sessionID)
 
 	// 从模板包中获取页面模板
 	tmpl, err := ptemplate.GetPageTemplate()

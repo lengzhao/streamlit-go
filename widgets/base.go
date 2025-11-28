@@ -6,9 +6,6 @@ import (
 	"time"
 )
 
-// GlobalUpdateFunc 全局更新函数类型
-type GlobalUpdateFunc func(componentID string, html string)
-
 // ISession 会话接口，避免循环依赖
 type ISession interface {
 	ID() string
@@ -20,9 +17,10 @@ type ISession interface {
 	LastAccessedAt() time.Time
 	CreatedAt() time.Time
 	AddWidget(widget Widget)
+	SetWidget(widget Widget)
 	GetWidgets() []Widget
 	ClearWidgets()
-	UpdateWidget(componentID string, html string)
+	DeleteWidget(componentID string)
 }
 
 // Widget 组件接口，所有组件必须实现此接口
@@ -107,21 +105,6 @@ func (w *BaseWidget) TriggerCallbacks(session ISession, event string, value stri
 	}
 }
 
-// UpdateWidget 更新组件并发送局部更新
-func (w *BaseWidget) UpdateWidget(session ISession, renderer func() string) string {
-	html := renderer()
-
-	// 如果提供了会话上下文，则使用会话的局部更新方法
-	if session != nil {
-		session.UpdateWidget(w.GetID(), html)
-	} else if globalUpdateFunc != nil {
-		// 否则使用全局更新函数（向后兼容）
-		globalUpdateFunc(w.GetID(), html)
-	}
-
-	return html
-}
-
 // SetVisible 设置可见性
 func (w *BaseWidget) SetVisible(visible bool) {
 	w.visible = visible
@@ -130,14 +113,6 @@ func (w *BaseWidget) SetVisible(visible bool) {
 // IsVisible 检查是否可见
 func (w *BaseWidget) IsVisible() bool {
 	return w.visible
-}
-
-// globalUpdateFunc 全局更新函数实例
-var globalUpdateFunc GlobalUpdateFunc
-
-// SetGlobalUpdateFunc 设置全局更新函数
-func SetGlobalUpdateFunc(updateFunc GlobalUpdateFunc) {
-	globalUpdateFunc = updateFunc
 }
 
 var widgetIDCounter uint64

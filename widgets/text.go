@@ -27,10 +27,6 @@ func NewTitle(text string, anchor ...string) *TitleWidget {
 // SetText 设置标题文本
 func (w *TitleWidget) SetText(text string) {
 	w.text = text
-	// 触发更新（注意：这里没有会话上下文，可能需要在其他地方处理更新）
-	w.UpdateWidget(nil, func() string {
-		return w.Render()
-	})
 }
 
 // Render 渲染标题组件为HTML
@@ -108,6 +104,11 @@ func (w *TextWidget) Render() string {
 	return fmt.Sprintf("<div class=\"st-text\" data-widget-id=\"%s\">%s</div>", w.GetID(), html.EscapeString(w.text))
 }
 
+// SetText 设置文本内容
+func (w *TextWidget) SetText(text string) {
+	w.text = text
+}
+
 // WriteWidget 通用数据展示组件
 type WriteWidget struct {
 	*BaseWidget
@@ -125,10 +126,6 @@ func NewWrite(data interface{}) *WriteWidget {
 // SetData 设置数据
 func (w *WriteWidget) SetData(data interface{}) {
 	w.data = data
-	// 触发更新（注意：这里没有会话上下文，可能需要在其他地方处理更新）
-	w.UpdateWidget(nil, func() string {
-		return w.Render()
-	})
 }
 
 // GetData 获取数据
