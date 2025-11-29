@@ -128,11 +128,6 @@ func (w *WriteWidget) SetData(data interface{}) {
 	w.data = data
 }
 
-// GetData 获取数据
-func (w *WriteWidget) GetData() interface{} {
-	return w.data
-}
-
 // Render 渲染通用数据展示组件为HTML
 func (w *WriteWidget) Render() string {
 	return fmt.Sprintf("<div class=\"st-write\" data-widget-id=\"%s\">%v</div>", w.GetID(), w.data)

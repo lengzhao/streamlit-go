@@ -121,13 +121,13 @@ type SidebarWidget struct {
 }
 
 // NewSidebar 创建新的侧边栏组件
-func NewSidebar(expanded bool, key ...string) *SidebarWidget {
+func NewSidebar(expanded bool) *SidebarWidget {
 	w := &SidebarWidget{
 		BaseWidget: NewBaseWidget("sidebar"),
 		expanded:   expanded,
 		children:   make([]Widget, 0),
 	}
-	// 移除SetKey调用，因为key参数将被忽略
+
 	return w
 }
 
@@ -160,14 +160,14 @@ type ExpanderWidget struct {
 }
 
 // NewExpander 创建新的可展开组件
-func NewExpander(label string, expanded bool, key ...string) *ExpanderWidget {
+func NewExpander(label string, expanded bool) *ExpanderWidget {
 	w := &ExpanderWidget{
 		BaseWidget: NewBaseWidget("expander"),
 		label:      label,
 		expanded:   expanded,
 		children:   make([]Widget, 0),
 	}
-	// 移除SetKey调用，因为key参数将被忽略
+
 	return w
 }
 

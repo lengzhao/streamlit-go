@@ -128,31 +128,31 @@ func (a *App) GetAddress() string
 
 #### Title
 ```go
-func (a *App) Title(text string, key ...string) *widgets.TitleWidget
+func (a *App) Title(text string) *widgets.TitleWidget
 ```
 创建标题组件。
 
 #### Header
 ```go
-func (a *App) Header(text string, withDivider bool, key ...string) *widgets.HeaderWidget
+func (a *App) Header(text string, withDivider bool) *widgets.HeaderWidget
 ```
 创建头部组件。
 
 #### Subheader
 ```go
-func (a *App) Subheader(text string, key ...string) *widgets.SubheaderWidget
+func (a *App) Subheader(text string) *widgets.SubheaderWidget
 ```
 创建子标题组件。
 
 #### Text
 ```go
-func (a *App) Text(text string, key ...string) *widgets.TextWidget
+func (a *App) Text(text string) *widgets.TextWidget
 ```
 创建文本组件。
 
 #### Write
 ```go
-func (a *App) Write(data interface{}, key ...string) *widgets.WriteWidget
+func (a *App) Write(data interface{}) *widgets.WriteWidget
 ```
 创建写入组件。
 
@@ -160,19 +160,19 @@ func (a *App) Write(data interface{}, key ...string) *widgets.WriteWidget
 
 #### TextInput
 ```go
-func (a *App) TextInput(label, value string, key ...string) *widgets.TextInputWidget
+func (a *App) TextInput(label, value string) *widgets.TextInputWidget
 ```
 创建文本输入组件。
 
 #### NumberInput
 ```go
-func (a *App) NumberInput(label string, value float64, key ...string) *widgets.NumberInputWidget
+func (a *App) NumberInput(label string, value float64) *widgets.NumberInputWidget
 ```
 创建数字输入组件。
 
 #### Button
 ```go
-func (a *App) Button(label string, key ...string) *widgets.ButtonWidget
+func (a *App) Button(label string) *widgets.ButtonWidget
 ```
 创建按钮组件。
 
@@ -180,13 +180,13 @@ func (a *App) Button(label string, key ...string) *widgets.ButtonWidget
 
 #### Container
 ```go
-func (a *App) Container(withBorder bool, key ...string) *widgets.ContainerWidget
+func (a *App) Container(withBorder bool) *widgets.ContainerWidget
 ```
 创建容器组件。
 
 #### Columns
 ```go
-func (a *App) Columns(count int, key ...string) *widgets.ColumnsWidget
+func (a *App) Columns(count int) *widgets.ColumnsWidget
 ```
 创建列布局组件。
 
@@ -198,7 +198,7 @@ func (a *App) Sidebar(key ...string) *widgets.SidebarWidget
 
 #### Expander
 ```go
-func (a *App) Expander(label string, expanded bool, key ...string) *widgets.ExpanderWidget
+func (a *App) Expander(label string, expanded bool) *widgets.ExpanderWidget
 ```
 创建可展开组件。
 
@@ -206,19 +206,19 @@ func (a *App) Expander(label string, expanded bool, key ...string) *widgets.Expa
 
 #### Table
 ```go
-func (a *App) Table(data interface{}, key ...string) *widgets.TableWidget
+func (a *App) Table(data interface{}) *widgets.TableWidget
 ```
 创建表格组件。
 
 #### DataFrame
 ```go
-func (a *App) DataFrame(data interface{}, key ...string) *widgets.DataFrameWidget
+func (a *App) DataFrame(data interface{}) *widgets.DataFrameWidget
 ```
 创建数据框组件。
 
 #### Metric
 ```go
-func (a *App) Metric(label, value string, key ...string) *widgets.MetricWidget
+func (a *App) Metric(label, value string) *widgets.MetricWidget
 ```
 创建指标组件。
 

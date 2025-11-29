@@ -16,7 +16,7 @@ func NewButton(label string) *ButtonWidget {
 		BaseWidget: NewBaseWidget("button"),
 		label:      label,
 	}
-	// 移除SetKey调用，因为key参数将被忽略
+
 	return w
 }
 
@@ -24,9 +24,4 @@ func NewButton(label string) *ButtonWidget {
 func (w *ButtonWidget) Render() string {
 	id := w.GetID()
 	return fmt.Sprintf("<button class=\"st-button\" data-widget-id=\"%s\" id=\"%s\" data-event-type=\"click\">%s</button>", id, id, w.label)
-}
-
-// SetValue 设置按钮值（触发点击事件）
-func (w *ButtonWidget) SetValue(session ISession) {
-	w.TriggerCallbacks(session, "click", "")
 }

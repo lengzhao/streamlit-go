@@ -15,13 +15,13 @@ type TextInputWidget struct {
 }
 
 // NewTextInput 创建新的文本输入组件
-func NewTextInput(label string, value string, key ...string) *TextInputWidget {
+func NewTextInput(label string, value string) *TextInputWidget {
 	w := &TextInputWidget{
 		BaseWidget: NewBaseWidget("text_input"),
 		label:      label,
 		value:      value,
 	}
-	// 移除SetKey调用，因为key参数将被忽略
+
 	return w
 }
 
@@ -67,7 +67,7 @@ func NewNumberInput(label string, value float64) *NumberInputWidget {
 		value:      value,
 		step:       1,
 	}
-	// 移除SetKey调用，因为key参数将被忽略
+
 	return w
 }
 

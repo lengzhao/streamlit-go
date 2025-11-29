@@ -13,12 +13,12 @@ type TableWidget struct {
 }
 
 // NewTable 创建新的表格组件
-func NewTable(data interface{}, key ...string) *TableWidget {
+func NewTable(data interface{}) *TableWidget {
 	w := &TableWidget{
 		BaseWidget: NewBaseWidget("table"),
 		data:       data,
 	}
-	// 移除SetKey调用，因为key参数将被忽略
+
 	return w
 }
 
@@ -44,12 +44,12 @@ type DataFrameWidget struct {
 }
 
 // NewDataFrame 创建新的数据框组件
-func NewDataFrame(data interface{}, key ...string) *DataFrameWidget {
+func NewDataFrame(data interface{}) *DataFrameWidget {
 	w := &DataFrameWidget{
 		BaseWidget: NewBaseWidget("dataframe"),
 		data:       data,
 	}
-	// 移除SetKey调用，因为key参数将被忽略
+
 	return w
 }
 
